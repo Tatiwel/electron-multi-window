@@ -1,4 +1,4 @@
-const { ipcRenderer } = require('electron');
+import { ipcRenderer } from 'electron';
 
 let newWinOpen = false;
 
@@ -9,7 +9,7 @@ const syncedMessageElement = document.getElementById('synced-message');
 // submit form index page
 if (submitButton && inputElement) {
   submitButton.addEventListener('click', () => {
-    const userInput = inputElement.value;
+    const userInput = (inputElement as HTMLInputElement).value;
     if (userInput) {
       if (!newWinOpen) {
         ipcRenderer.send('open-new-window', userInput);
@@ -21,12 +21,14 @@ if (submitButton && inputElement) {
 
   // modify the value of the text field
   inputElement.addEventListener('input', (e) => {
-    ipcRenderer.send('update-value', e.target.value);
+    if (!e.target) return;
+
+    ipcRenderer.send('update-value', (e.target as HTMLInputElement).value);
   });
 }
 
 // Listener to sync value
-ipcRenderer.on('update-value', (event, updatedInput) => {
+ipcRenderer.on('update-value', (_event, updatedInput) => {
   if (syncedMessageElement) {
     syncedMessageElement.innerText = updatedInput;
   }
