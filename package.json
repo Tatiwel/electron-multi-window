@@ -1,0 +1,15 @@
+{
+  "name": "electron-multi-window",
+  "version": "1.0.0",
+  "description": "version1",
+  "main": "src/main/main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "electron ."
+  },
+  "author": "daniel",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^32.1.2"
+  }
+}

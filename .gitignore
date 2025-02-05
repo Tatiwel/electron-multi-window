@@ -172,3 +172,7 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+
+# Dependecys
+!package.json
+!package-lock.json
