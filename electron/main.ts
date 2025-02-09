@@ -3,6 +3,7 @@ import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -26,8 +27,8 @@ function createWindow() {
     icon: path.join(process.env.VITE_PUBLIC, 'electron-vite.svg'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.mjs'),
-      contextIsolation: true, // Alterado para true
-      nodeIntegration: false, // Alterado para false
+      contextIsolation: true,
+      nodeIntegration: false,
     },
   });
 
@@ -57,8 +58,8 @@ async function openNewWindow(userInput: unknown) {
     height: 400,
     webPreferences: {
       preload: path.join(__dirname, 'preload.mjs'),
-      contextIsolation: true, // Alterado para true
-      nodeIntegration: false, // Alterado para false
+      contextIsolation: true,
+      nodeIntegration: false,
     },
   });
 
@@ -70,11 +71,14 @@ async function openNewWindow(userInput: unknown) {
   });
 
   if (VITE_DEV_SERVER_URL) {
-    await newWin.loadURL(VITE_DEV_SERVER_URL);
+    // Em desenvolvimento, carrega a rota do newwindow.html
+    await newWin.loadURL(VITE_DEV_SERVER_URL + '/newwindow.html');
   } else {
-    await newWin.loadFile(path.join(RENDERER_DIST, 'index.html'));
+    // Em produção, carrega o arquivo newwindow.html do diretório de distribuição
+    await newWin.loadFile(path.join(RENDERER_DIST, 'newwindow.html'));
   }
 
+  // Envia o dado para a nova janela
   newWin.webContents.send('display-user-name', userInput);
 
   newWin.on('closed', () => {

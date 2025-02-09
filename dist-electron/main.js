@@ -19,9 +19,7 @@ function createWindow() {
     webPreferences: {
       preload: path.join(__dirname, "preload.mjs"),
       contextIsolation: true,
-      // Alterado para true
       nodeIntegration: false
-      // Alterado para false
     }
   });
   mainWindow.webContents.on("did-finish-load", () => {
@@ -48,9 +46,7 @@ async function openNewWindow(userInput) {
     webPreferences: {
       preload: path.join(__dirname, "preload.mjs"),
       contextIsolation: true,
-      // Alterado para true
       nodeIntegration: false
-      // Alterado para false
     }
   });
   newWin.webContents.on("did-finish-load", () => {
@@ -60,9 +56,9 @@ async function openNewWindow(userInput) {
     );
   });
   if (VITE_DEV_SERVER_URL) {
-    await newWin.loadURL(VITE_DEV_SERVER_URL);
+    await newWin.loadURL(VITE_DEV_SERVER_URL + "/newwindow.html");
   } else {
-    await newWin.loadFile(path.join(RENDERER_DIST, "index.html"));
+    await newWin.loadFile(path.join(RENDERER_DIST, "newwindow.html"));
   }
   newWin.webContents.send("display-user-name", userInput);
   newWin.on("closed", () => {
