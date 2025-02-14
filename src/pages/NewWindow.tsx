@@ -1,21 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
-import './newwindow.css';
+import '../styles/newwindow.css';
 
 const NewWindow: React.FC = () => {
   const [userMessage, setUserMessage] = useState('');
 
   useEffect(() => {
-    // Escuta o evento que envia a mensagem do processo principal
     window.ipcRenderer.on('display-user-name', (_event, message) => {
       setUserMessage(message);
     });
-
-    // Opcional: se desejar sincronizar atualizações
     window.ipcRenderer.on('update-value', (_event, message) => {
       setUserMessage(message);
     });
-
     return () => {
       window.ipcRenderer.off('display-user-name', () => {});
       window.ipcRenderer.off('update-value', () => {});

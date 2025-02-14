@@ -17,8 +17,8 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
   ? path.join(process.env.APP_ROOT, 'public')
   : RENDERER_DIST;
 
-let mainWindow: BrowserWindow | null;
-let newWin: BrowserWindow | null;
+let mainWindow: BrowserWindow | null = null;
+let newWin: BrowserWindow | null = null;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -46,9 +46,7 @@ function createWindow() {
   }
 
   mainWindow.on('closed', () => {
-    if (newWin) {
-      newWin.close();
-    }
+    if (newWin) newWin.close();
   });
 }
 
@@ -71,14 +69,12 @@ async function openNewWindow(userInput: unknown) {
   });
 
   if (VITE_DEV_SERVER_URL) {
-    // Em desenvolvimento, carrega a rota do newwindow.html
+    // Em desenvolvimento, carrega a rota para newwindow.html
     await newWin.loadURL(VITE_DEV_SERVER_URL + '/newwindow.html');
   } else {
-    // Em produção, carrega o arquivo newwindow.html do diretório de distribuição
     await newWin.loadFile(path.join(RENDERER_DIST, 'newwindow.html'));
   }
 
-  // Envia o dado para a nova janela
   newWin.webContents.send('display-user-name', userInput);
 
   newWin.on('closed', () => {
@@ -95,19 +91,12 @@ app.on('window-all-closed', () => {
 });
 
 app.on('activate', () => {
-  if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow();
-  }
+  if (BrowserWindow.getAllWindows().length === 0) createWindow();
 });
 
-ipcMain.on('open-new-window', (_event, userInput) => {
-  openNewWindow(userInput);
-});
-
+ipcMain.on('open-new-window', (_event, userInput) => openNewWindow(userInput));
 ipcMain.on('update-value', (_event, updatedInput) => {
-  if (newWin) {
-    newWin.webContents.send('update-value', updatedInput);
-  }
+  if (newWin) newWin.webContents.send('update-value', updatedInput);
 });
 
 app.whenReady().then(createWindow);

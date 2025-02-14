@@ -9,8 +9,8 @@ const VITE_DEV_SERVER_URL = process.env["VITE_DEV_SERVER_URL"];
 const MAIN_DIST = path.join(process.env.APP_ROOT, "dist-electron");
 const RENDERER_DIST = path.join(process.env.APP_ROOT, "dist");
 process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, "public") : RENDERER_DIST;
-let mainWindow;
-let newWin;
+let mainWindow = null;
+let newWin = null;
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 800,
@@ -34,9 +34,7 @@ function createWindow() {
     mainWindow.loadFile(path.join(RENDERER_DIST, "index.html"));
   }
   mainWindow.on("closed", () => {
-    if (newWin) {
-      newWin.close();
-    }
+    if (newWin) newWin.close();
   });
 }
 async function openNewWindow(userInput) {
@@ -73,17 +71,11 @@ app.on("window-all-closed", () => {
   }
 });
 app.on("activate", () => {
-  if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow();
-  }
+  if (BrowserWindow.getAllWindows().length === 0) createWindow();
 });
-ipcMain.on("open-new-window", (_event, userInput) => {
-  openNewWindow(userInput);
-});
+ipcMain.on("open-new-window", (_event, userInput) => openNewWindow(userInput));
 ipcMain.on("update-value", (_event, updatedInput) => {
-  if (newWin) {
-    newWin.webContents.send("update-value", updatedInput);
-  }
+  if (newWin) newWin.webContents.send("update-value", updatedInput);
 });
 app.whenReady().then(createWindow);
 export {
