@@ -1,10 +1,10 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
-import { createRequire } from 'node:module';
+//import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const require = createRequire(import.meta.url);
+//const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 process.env.APP_ROOT = path.join(__dirname, '..');
@@ -75,7 +75,8 @@ async function openNewWindow(userInput: unknown) {
     await newWin.loadFile(path.join(RENDERER_DIST, 'newwindow.html'));
   }
 
-  newWin.webContents.send('display-user-name', userInput);
+  // receives the user input from the main window and sends it to the new window
+  newWin.webContents.send('update-value', userInput);
 
   newWin.on('closed', () => {
     newWin = null;

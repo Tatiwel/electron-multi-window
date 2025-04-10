@@ -23,8 +23,14 @@ const App: React.FC = () => {
     if (inputValue.trim() !== '') {
       window.ipcRenderer.send('open-new-window', inputValue);
       window.ipcRenderer.send('update-value', inputValue);
-      setInputValue(''); // Limpa o campo de entrada após o envio
+      //setInputValue(''); // Limpa o campo de entrada após o envio
     }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    setInputValue(newValue);
+    window.ipcRenderer.send('update-value', newValue);
   };
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
@@ -41,7 +47,7 @@ const App: React.FC = () => {
           type="text"
           placeholder="Digite algo..."
           value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
+          onChange={handleChange} // Sync input value with state
           onKeyDown={handleKeyDown}
           className="input-field"
         />

@@ -6,14 +6,11 @@ const NewWindow: React.FC = () => {
   const [userMessage, setUserMessage] = useState('');
 
   useEffect(() => {
-    window.ipcRenderer.on('display-user-name', (_event, message) => {
-      setUserMessage(message);
-    });
+    // opens a new window with the entered value and continues with the synchronization
     window.ipcRenderer.on('update-value', (_event, message) => {
       setUserMessage(message);
     });
     return () => {
-      window.ipcRenderer.off('display-user-name', () => {});
       window.ipcRenderer.off('update-value', () => {});
     };
   }, []);
