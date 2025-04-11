@@ -17,9 +17,9 @@ const NewWindow: React.FC = () => {
 
   return (
     <div className="newwindow-container">
-      <h1>Mensagem do Usuário</h1>
+      <h1>User Message</h1>
       <div className="message-box">
-        {userMessage || 'Nenhuma mensagem recebida.'}
+        {userMessage || 'No messages received.'}
       </div>
     </div>
   );

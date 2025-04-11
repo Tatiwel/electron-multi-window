@@ -1,29 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import EditIcon from '../assets/edit-icon.svg';
+import TrashIcon from '../assets/trash-icon.svg';
 import '../styles/global.css';
+import '../styles/app.css';
 
 const App: React.FC = () => {
   const [inputValue, setInputValue] = useState('');
-  const [displayMessage, setDisplayMessage] = useState('');
-
-  useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const handleUpdateValue = (_event: any, message: string) => {
-      setDisplayMessage(message);
-    };
-
-    window.ipcRenderer.on('update-value', handleUpdateValue);
-
-    return () => {
-      window.ipcRenderer.off('update-value', handleUpdateValue);
-    };
-  }, []);
+  const [messages, setMessages] = useState<string[]>([]);
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     if (inputValue.trim() !== '') {
       window.ipcRenderer.send('open-new-window', inputValue);
       window.ipcRenderer.send('update-value', inputValue);
-      //setInputValue(''); // Limpa o campo de entrada após o envio
+
+      // Atualiza o estado com a nova mensagem
+      setMessages([...messages, inputValue]);
+
+      //setInputValue(''); // Opcional: Limpar o campo de entrada após o envio
     }
   };
 
@@ -41,26 +35,62 @@ const App: React.FC = () => {
 
   return (
     <div className="app-container">
-      <h1>Digite algo</h1>
+      <h1>Type Something...</h1>
       <form onSubmit={handleSubmit}>
         <input
           type="text"
           placeholder="Digite algo..."
           value={inputValue}
-          onChange={handleChange} // Sync input value with state
+          onChange={handleChange}
           onKeyDown={handleKeyDown}
           className="input-field"
         />
         <button type="submit" className="btn-submit">
-          Enviar
+          Send
         </button>
       </form>
-      {displayMessage && (
-        <div className="message-display">
-          <h2>Última mensagem enviada:</h2>
-          <p>{displayMessage}</p>
+      <div className="message-display">
+        <h2>Last Messages:</h2>
+        <div className="messages-grid">
+          {/* Linha de cabeçalho */}
+          <div className="messages-header">
+            <div>#</div>
+            <div>Message</div>
+            <div>Action</div>
+          </div>
+          {messages.map((message, index) => (
+            <div key={index} className="message-row">
+              <div className="message-index">{index + 1}.</div>
+              <div className="message-text">{message}</div>
+              {/* adicione um botao de editar */}
+              <div className="message-action">
+                <button
+                  onClick={() => {
+                    const updatedMessages = messages.filter(
+                      (_, i) => i !== index
+                    );
+                    setMessages(updatedMessages);
+                  }}
+                  className="btn-delete"
+                >
+                  <img src={TrashIcon} alt="Delete" className="action-icon" />
+                </button>
+                <button
+                  onClick={() => {
+                    const updatedMessages = [...messages];
+                    updatedMessages[index] =
+                      prompt('Edit message:', message) || message;
+                    setMessages(updatedMessages);
+                  }}
+                  className="btn-edit"
+                >
+                  <img src={EditIcon} alt="Edit" className="action-icon" />
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
-      )}
+      </div>
     </div>
   );
 };
