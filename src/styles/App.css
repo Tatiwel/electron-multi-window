@@ -40,8 +40,6 @@
 
 .action-icon:hover {
   cursor: pointer;
-  color: #007bff; /* cor ao passar o mouse */
-  transition: color 0.3s ease; /* animação suave para a mudança de cor */
   transform: scale(1.1); /* leve aumento de tamanho ao passar o mouse */
-  transition: transform 0.3s ease; /* animação suave para o aumento de tamanho */
+  transition: transform 0.2s ease; /* animação suave para o aumento de tamanho */
 }

@@ -8,11 +8,11 @@ const App: React.FC = () => {
   const [inputValue, setInputValue] = useState('');
   const [messages, setMessages] = useState<string[]>([]);
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleCreateWindow = (event: React.FormEvent) => {
     event.preventDefault();
     if (inputValue.trim() !== '') {
       window.ipcRenderer.send('open-new-window', inputValue);
-      window.ipcRenderer.send('update-value', inputValue);
+      //window.ipcRenderer.send('update-value', inputValue);
 
       // Atualiza o estado com a nova mensagem
       setMessages([...messages, inputValue]);
@@ -21,32 +21,32 @@ const App: React.FC = () => {
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUpdateValue = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     setInputValue(newValue);
     window.ipcRenderer.send('update-value', newValue);
   };
 
-  const handleKeyDown = (event: React.KeyboardEvent) => {
-    if (event.key === 'Enter') {
-      handleSubmit(event as unknown as React.FormEvent);
-    }
-  };
+  // const handleKeyDown = (event: React.KeyboardEvent) => {
+  //   if (event.key === 'Enter') {
+  //     handleCreateWindow(event as unknown as React.FormEvent);
+  //   }
+  // };
 
   return (
     <div className="app-container">
       <h1>Type Something...</h1>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleCreateWindow}>
         <input
           type="text"
-          placeholder="Digite algo..."
+          placeholder="Type here..."
           value={inputValue}
-          onChange={handleChange}
-          onKeyDown={handleKeyDown}
+          onChange={handleUpdateValue}
+          //onKeyDown={handleKeyDown}
           className="input-field"
         />
         <button type="submit" className="btn-submit">
-          Send
+          Create a Message
         </button>
       </form>
       <div className="message-display">
@@ -62,8 +62,20 @@ const App: React.FC = () => {
             <div key={index} className="message-row">
               <div className="message-index">{index + 1}.</div>
               <div className="message-text">{message}</div>
-              {/* adicione um botao de editar */}
               <div className="message-action">
+                <button
+                  onClick={() => {
+                    // Envia o comando para abrir uma nova janela em modo 'edit' passando o conteúdo e o índice
+                    window.ipcRenderer.send('open-new-window', {
+                      mode: 'edit',
+                      message: message,
+                      index: index,
+                    });
+                  }}
+                  className="btn-edit"
+                >
+                  <img src={EditIcon} alt="Edit" className="action-icon" />
+                </button>
                 <button
                   onClick={() => {
                     const updatedMessages = messages.filter(
@@ -74,17 +86,6 @@ const App: React.FC = () => {
                   className="btn-delete"
                 >
                   <img src={TrashIcon} alt="Delete" className="action-icon" />
-                </button>
-                <button
-                  onClick={() => {
-                    const updatedMessages = [...messages];
-                    updatedMessages[index] =
-                      prompt('Edit message:', message) || message;
-                    setMessages(updatedMessages);
-                  }}
-                  className="btn-edit"
-                >
-                  <img src={EditIcon} alt="Edit" className="action-icon" />
                 </button>
               </div>
             </div>
