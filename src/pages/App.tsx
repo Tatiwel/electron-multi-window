@@ -11,41 +11,29 @@ const App: React.FC = () => {
   const [editingValue, setEditingValue] = useState('');
 
   // Cria nova mensagem
-  const handleCreate = (e: React.FormEvent) => {
+  const handleCreateMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputValue.trim()) return;
-    window.ipcRenderer.send('open-new-window', inputValue);
     setMessages([...messages, inputValue]);
-    //setInputValue('');
+    setInputValue('');
   };
 
-  // Atualiza o input
+  // Atualiza o input por causa do value={inputValue}, caso nao tenha isso, o input não atualiza
+  // e o valor fica fixo no que foi digitado na primeira vez
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value);
-    window.ipcRenderer.send('update-value', e.target.value);
   };
 
   // Inicia a edição de uma linha
-
   const handleEditClick = (index: number) => {
     setEditingIndex(index);
     setEditingValue(messages[index]);
     window.ipcRenderer.send('open-new-window', messages[index]);
     window.ipcRenderer.send('update-value', messages[index]);
-    console.log('Editing:', messages[index]);
-    console.log(editingValue); // ainda estará desatualizado aqui
   };
 
-  // const handleEditClick = (index: number) => {
-  //   setEditingIndex(index);
-  //   setEditingValue(messages[index]);
-  //   window.ipcRenderer.send('open-new-window', editingValue);
-  //   console.log('Editing:', messages[index]);
-  //   console.log(editingValue);
-  // };
-
   // Atualiza o valor enquanto edita
-  const handleEditingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleEditingSync = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEditingValue(e.target.value);
     window.ipcRenderer.send('update-value', e.target.value);
   };
@@ -74,7 +62,7 @@ const App: React.FC = () => {
   return (
     <div className="app-container">
       <h1>Type Something...</h1>
-      <form onSubmit={handleCreate}>
+      <form onSubmit={handleCreateMessage}>
         <input
           type="text"
           placeholder="Type here..."
@@ -97,7 +85,6 @@ const App: React.FC = () => {
             <div>Action</div>
           </div>
 
-          {/* Linhas de mensagem */}
           {messages.map((message, index) => (
             <div key={index} className="message-row">
               <div className="message-index">{index + 1}.</div>
@@ -108,7 +95,7 @@ const App: React.FC = () => {
                     <input
                       type="text"
                       value={editingValue}
-                      onChange={handleEditingChange}
+                      onChange={handleEditingSync}
                       className="input-edit"
                     />
                   </div>
