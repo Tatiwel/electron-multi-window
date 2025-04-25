@@ -7,87 +7,143 @@ import '../styles/app.css';
 const App: React.FC = () => {
   const [inputValue, setInputValue] = useState('');
   const [messages, setMessages] = useState<string[]>([]);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [editingValue, setEditingValue] = useState('');
 
-  const handleCreateWindow = (event: React.FormEvent) => {
-    event.preventDefault();
-    if (inputValue.trim() !== '') {
-      window.ipcRenderer.send('open-new-window', inputValue);
-      //window.ipcRenderer.send('update-value', inputValue);
-
-      // Atualiza o estado com a nova mensagem
-      setMessages([...messages, inputValue]);
-
-      //setInputValue(''); // Opcional: Limpar o campo de entrada após o envio
-    }
+  // Cria nova mensagem
+  const handleCreate = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inputValue.trim()) return;
+    window.ipcRenderer.send('open-new-window', inputValue);
+    setMessages([...messages, inputValue]);
+    //setInputValue('');
   };
 
-  const handleUpdateValue = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value;
-    setInputValue(newValue);
-    window.ipcRenderer.send('update-value', newValue);
+  // Atualiza o input
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(e.target.value);
+    window.ipcRenderer.send('update-value', e.target.value);
   };
 
-  // const handleKeyDown = (event: React.KeyboardEvent) => {
-  //   if (event.key === 'Enter') {
-  //     handleCreateWindow(event as unknown as React.FormEvent);
-  //   }
+  // Inicia a edição de uma linha
+
+  const handleEditClick = (index: number) => {
+    setEditingIndex(index);
+    setEditingValue(messages[index]);
+    window.ipcRenderer.send('open-new-window', messages[index]);
+    window.ipcRenderer.send('update-value', messages[index]);
+    console.log('Editing:', messages[index]);
+    console.log(editingValue); // ainda estará desatualizado aqui
+  };
+
+  // const handleEditClick = (index: number) => {
+  //   setEditingIndex(index);
+  //   setEditingValue(messages[index]);
+  //   window.ipcRenderer.send('open-new-window', editingValue);
+  //   console.log('Editing:', messages[index]);
+  //   console.log(editingValue);
   // };
+
+  // Atualiza o valor enquanto edita
+  const handleEditingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEditingValue(e.target.value);
+    window.ipcRenderer.send('update-value', e.target.value);
+  };
+
+  // Salva a edição
+  const handleSave = () => {
+    if (editingIndex === null) return;
+    const updated = [...messages];
+    updated[editingIndex] = editingValue;
+    setMessages(updated);
+    setEditingIndex(null);
+    setEditingValue('');
+  };
+
+  // Cancela a edição
+  const handleCancel = () => {
+    setEditingIndex(null);
+    setEditingValue('');
+  };
+
+  // Remove mensagem
+  const handleDelete = (index: number) => {
+    setMessages(messages.filter((_, i) => i !== index));
+  };
 
   return (
     <div className="app-container">
       <h1>Type Something...</h1>
-      <form onSubmit={handleCreateWindow}>
+      <form onSubmit={handleCreate}>
         <input
           type="text"
           placeholder="Type here..."
           value={inputValue}
-          onChange={handleUpdateValue}
-          //onKeyDown={handleKeyDown}
+          onChange={handleInputChange}
           className="input-field"
         />
         <button type="submit" className="btn-submit">
           Create a Message
         </button>
       </form>
+
       <div className="message-display">
         <h2>Last Messages:</h2>
         <div className="messages-grid">
-          {/* Linha de cabeçalho */}
+          {/* Cabeçalho */}
           <div className="messages-header">
             <div>#</div>
             <div>Message</div>
             <div>Action</div>
           </div>
+
+          {/* Linhas de mensagem */}
           {messages.map((message, index) => (
             <div key={index} className="message-row">
               <div className="message-index">{index + 1}.</div>
-              <div className="message-text">{message}</div>
-              <div className="message-action">
-                <button
-                  onClick={() => {
-                    // Envia o comando para abrir uma nova janela em modo 'edit' passando o conteúdo e o índice
-                    window.ipcRenderer.send('open-new-window', {
-                      mode: 'edit',
-                      message: message,
-                      index: index,
-                    });
-                  }}
-                  className="btn-edit"
-                >
-                  <img src={EditIcon} alt="Edit" className="action-icon" />
-                </button>
-                <button
-                  onClick={() => {
-                    const updatedMessages = messages.filter(
-                      (_, i) => i !== index
-                    );
-                    setMessages(updatedMessages);
-                  }}
-                  className="btn-delete"
-                >
-                  <img src={TrashIcon} alt="Delete" className="action-icon" />
-                </button>
-              </div>
+
+              {editingIndex === index ? (
+                <>
+                  <div className="message-text">
+                    <input
+                      type="text"
+                      value={editingValue}
+                      onChange={handleEditingChange}
+                      className="input-edit"
+                    />
+                  </div>
+                  <div className="message-action">
+                    <button onClick={handleSave} className="btn-save">
+                      Save
+                    </button>
+                    <button onClick={handleCancel} className="btn-cancel">
+                      Cancel
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="message-text">{message}</div>
+                  <div className="message-action">
+                    <button
+                      onClick={() => handleEditClick(index)}
+                      className="btn-edit"
+                    >
+                      <img src={EditIcon} alt="Edit" className="action-icon" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(index)}
+                      className="btn-delete"
+                    >
+                      <img
+                        src={TrashIcon}
+                        alt="Delete"
+                        className="action-icon"
+                      />
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           ))}
         </div>
