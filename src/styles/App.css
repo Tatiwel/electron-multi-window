@@ -17,7 +17,7 @@
   display: table-cell;
   border: 1px solid #ccc;
   padding: 10px;
-  text-align: left;
+  text-align: center;
 }
 
 /* Linhas da tabela */
@@ -32,6 +32,13 @@
   text-align: left;
 }
 
+.message-action {
+  display: flex !important; /* faz deste cell um flex container */
+  align-items: center !important; /* alinha verticalmente os ícones */
+  justify-content: center !important; /* alinha à esquerda; use center ou space-evenly se preferir */
+  gap: 8px !important; /* espaço fixo entre cada botão */
+}
+
 .action-icon {
   width: 20px;
   height: 20px;
@@ -42,4 +49,13 @@
   cursor: pointer;
   transform: scale(1.1); /* leve aumento de tamanho ao passar o mouse */
   transition: transform 0.2s ease; /* animação suave para o aumento de tamanho */
+}
+
+.btn-save,
+.btn-cancel,
+.btn-edit,
+.btn-delete {
+  /* padding: 10px 20px; */
+  margin: 0; /* elimina o `margin-left: 10px;` atual */
+  padding: 4px;
 }

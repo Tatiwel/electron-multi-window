@@ -95,6 +95,8 @@ app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) createWindow();
 });
 
+// Synchronizing data in the window
+
 ipcMain.on('open-new-window', (_event, userInput) => openNewWindow(userInput));
 ipcMain.on('update-value', (_event, updatedInput) => {
   if (newWin) newWin.webContents.send('update-value', updatedInput);

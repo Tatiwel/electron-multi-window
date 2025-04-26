@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import EditIcon from '../assets/edit-icon.svg';
 import TrashIcon from '../assets/trash-icon.svg';
+import SaveIcon from '../assets/save-icon.svg';
+import CancelIcon from '../assets/cancel-icon.svg';
 import '../styles/global.css';
 import '../styles/app.css';
 
@@ -74,66 +76,86 @@ const App: React.FC = () => {
           Create a Message
         </button>
       </form>
-
       <div className="message-display">
         <h2>Last Messages:</h2>
-        <div className="messages-grid">
-          {/* Cabeçalho */}
-          <div className="messages-header">
-            <div>#</div>
-            <div>Message</div>
-            <div>Action</div>
-          </div>
 
-          {messages.map((message, index) => (
-            <div key={index} className="message-row">
-              <div className="message-index">{index + 1}.</div>
+        {messages.length === 0 ? (
+          <>
+            <h4>No messages yet!</h4>
+          </>
+        ) : (
+          <>
+            <div className="messages-grid">
+              {/* Cabeçalho */}
+              <div className="messages-header">
+                <div>Index</div>
+                <div>Message</div>
+                <div style={{ width: '60px' }}>Action</div>
+              </div>
 
-              {editingIndex === index ? (
-                <>
-                  <div className="message-text">
-                    <input
-                      type="text"
-                      value={editingValue}
-                      onChange={handleEditingSync}
-                      className="input-edit"
-                    />
-                  </div>
-                  <div className="message-action">
-                    <button onClick={handleSave} className="btn-save">
-                      Save
-                    </button>
-                    <button onClick={handleCancel} className="btn-cancel">
-                      Cancel
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="message-text">{message}</div>
-                  <div className="message-action">
-                    <button
-                      onClick={() => handleEditClick(index)}
-                      className="btn-edit"
-                    >
-                      <img src={EditIcon} alt="Edit" className="action-icon" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(index)}
-                      className="btn-delete"
-                    >
-                      <img
-                        src={TrashIcon}
-                        alt="Delete"
-                        className="action-icon"
-                      />
-                    </button>
-                  </div>
-                </>
-              )}
+              {messages.map((message, index) => (
+                <div key={index} className="message-row">
+                  <div className="message-index">{index + 1}.</div>
+
+                  {editingIndex === index ? (
+                    <>
+                      <div className="message-text">
+                        <input
+                          type="text"
+                          value={editingValue}
+                          onChange={handleEditingSync}
+                          className="input-edit"
+                        />
+                      </div>
+                      <div className="message-action">
+                        <button onClick={handleSave} className="btn-save">
+                          <img
+                            src={SaveIcon}
+                            alt="Save"
+                            className="action-icon"
+                          />
+                        </button>
+                        <button onClick={handleCancel} className="btn-cancel">
+                          <img
+                            src={CancelIcon}
+                            alt="Cancel"
+                            className="action-icon"
+                          />
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="message-text">{message}</div>
+                      <div className="message-action">
+                        <button
+                          onClick={() => handleEditClick(index)}
+                          className="btn-edit"
+                        >
+                          <img
+                            src={EditIcon}
+                            alt="Edit"
+                            className="action-icon"
+                          />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(index)}
+                          className="btn-delete"
+                        >
+                          <img
+                            src={TrashIcon}
+                            alt="Delete"
+                            className="action-icon"
+                          />
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          </>
+        )}
       </div>
     </div>
   );
