@@ -176,3 +176,6 @@ cython_debug/
 # Dependecys
 !package.json
 !package-lock.json
+
+#dist
+/dist-electron
