@@ -6,12 +6,21 @@ const NewWindow: React.FC = () => {
   const [userMessage, setUserMessage] = useState('');
 
   useEffect(() => {
-    // opens a new window with the entered value and continues with the synchronization
-    window.ipcRenderer.on('update-value', (_event, message) => {
-      setUserMessage(message);
-    });
+    // inicializa com o valor passado ao abrir
+    const initHandler = (_e: any, value: string) => {
+      setUserMessage(value);
+    };
+    // sincroniza atualizações subsequentes
+    const updateHandler = (_e: any, value: string) => {
+      setUserMessage(value);
+    };
+
+    window.ipcRenderer.on('init-value', initHandler);
+    window.ipcRenderer.on('update-value', updateHandler);
+
     return () => {
-      window.ipcRenderer.off('update-value', () => {});
+      window.ipcRenderer.off('init-value', initHandler);
+      window.ipcRenderer.off('update-value', updateHandler);
     };
   }, []);
 

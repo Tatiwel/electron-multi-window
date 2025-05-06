@@ -1,24 +1,20 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
-//import { createRequire } from 'node:module';
+import { app, BrowserWindow, ipcMain } from 'electron'; // importações preservadas :contentReference[oaicite:2]{index=2}:contentReference[oaicite:3]{index=3}
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-//const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
 process.env.APP_ROOT = path.join(__dirname, '..');
 
 export const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL'];
 export const MAIN_DIST = path.join(process.env.APP_ROOT, 'dist-electron');
 export const RENDERER_DIST = path.join(process.env.APP_ROOT, 'dist');
-
 process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
   ? path.join(process.env.APP_ROOT, 'public')
   : RENDERER_DIST;
 
 let mainWindow: BrowserWindow | null = null;
-let newWin: BrowserWindow | null = null;
+// agora mantemos várias janelas num map
+const windows: Record<number, BrowserWindow> = {};
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -32,13 +28,6 @@ function createWindow() {
     },
   });
 
-  mainWindow.webContents.on('did-finish-load', () => {
-    mainWindow?.webContents.send(
-      'main-process-message',
-      new Date().toLocaleString()
-    );
-  });
-
   if (VITE_DEV_SERVER_URL) {
     mainWindow.loadURL(VITE_DEV_SERVER_URL);
   } else {
@@ -46,60 +35,77 @@ function createWindow() {
   }
 
   mainWindow.on('closed', () => {
-    if (newWin) newWin.close();
+    mainWindow = null;
+    // opcional: fechar todas as janelas filhas
+    Object.values(windows).forEach((win) => win.close());
   });
 }
 
-async function openNewWindow(userInput: unknown) {
-  newWin = new BrowserWindow({
-    width: 600,
-    height: 400,
-    webPreferences: {
-      preload: path.join(__dirname, 'preload.mjs'),
-      contextIsolation: true,
-      nodeIntegration: false,
-    },
-  });
+// Abre ou foca janela específica
+ipcMain.on(
+  'open-new-window',
+  async (_evt, { index, value }: { index: number; value: string }) => {
+    if (windows[index]) {
+      windows[index].focus();
+      return;
+    }
+    const win = new BrowserWindow({
+      width: 600,
+      height: 400,
+      webPreferences: {
+        preload: path.join(__dirname, 'preload.mjs'),
+        contextIsolation: true,
+        nodeIntegration: false,
+      },
+    });
+    windows[index] = win;
 
-  newWin.webContents.on('did-finish-load', () => {
-    newWin?.webContents.send(
-      'main-process-message',
-      new Date().toLocaleString()
-    );
-  });
+    if (VITE_DEV_SERVER_URL) {
+      await win.loadURL(VITE_DEV_SERVER_URL + '/newwindow.html');
+    } else {
+      await win.loadFile(path.join(RENDERER_DIST, 'newwindow.html'));
+    }
 
-  if (VITE_DEV_SERVER_URL) {
-    // Em desenvolvimento, carrega a rota para newwindow.html
-    await newWin.loadURL(VITE_DEV_SERVER_URL + '/newwindow.html');
-  } else {
-    await newWin.loadFile(path.join(RENDERER_DIST, 'newwindow.html'));
+    // envia valor inicial só para esta janela
+    win.webContents.send('init-value', value);
+
+    win.on('closed', () => {
+      delete windows[index];
+    });
   }
+);
 
-  // receives the user input from the main window and sends it to the new window
-  newWin.webContents.send('update-value', userInput);
+// Repassa atualização só para a janela correta
+ipcMain.on(
+  'update-value',
+  (_evt, { index, value }: { index: number; value: string }) => {
+    const win = windows[index];
+    if (win) {
+      win.webContents.send('update-value', value);
+    }
+  }
+);
 
-  newWin.on('closed', () => {
-    newWin = null;
-  });
-}
+// Fecha a janela de edição de índice X
+ipcMain.on('close-window', (_evt, { index }: { index: number }) => {
+  const win = windows[index];
+  if (win) {
+    win.close();
+    delete windows[index];
+  }
+});
+
+app.whenReady().then(createWindow);
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
     mainWindow = null;
-    newWin = null;
   }
 });
 
 app.on('activate', () => {
-  if (BrowserWindow.getAllWindows().length === 0) createWindow();
+  if (BrowserWindow.getAllWindows().length === 0) {
+    createWindow();
+  }
 });
-
-// Synchronizing data in the window
-
-ipcMain.on('open-new-window', (_event, userInput) => openNewWindow(userInput));
-ipcMain.on('update-value', (_event, updatedInput) => {
-  if (newWin) newWin.webContents.send('update-value', updatedInput);
-});
-
-app.whenReady().then(createWindow);

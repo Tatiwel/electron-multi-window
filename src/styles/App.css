@@ -13,6 +13,14 @@
   font-weight: bold;
 }
 
+.no_messages_yet {
+  text-align: center;
+  margin-top: 5%;
+  font-size: 1.2rem;
+  color: #999; /* cor cinza para o texto */
+}
+
+
 .messages-header > div {
   display: table-cell;
   border: 1px solid #ccc;
@@ -23,11 +31,6 @@
 /* Linhas da tabela */
 .message-row {
   display: table-row;
-}
-
-.no-message {
-  text-align: center;
-  margin-top: 5%;
 }
 
 .message-row > div {
