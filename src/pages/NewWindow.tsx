@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
-import '../styles/newwindow.css';
+import '../assets/styles/newwindow.css';
 
 const NewWindow: React.FC = () => {
   const [userMessage, setUserMessage] = useState('');
 
   useEffect(() => {
     // inicializa com o valor passado ao abrir
-    const initHandler = (_e: any, value: string) => {
+    const initHandler = (_e: Electron.IpcRendererEvent, value: string) => {
       setUserMessage(value);
     };
     // sincroniza atualizações subsequentes
-    const updateHandler = (_e: any, value: string) => {
+    const updateHandler = (_e: Electron.IpcRendererEvent, value: string) => {
       setUserMessage(value);
     };
 

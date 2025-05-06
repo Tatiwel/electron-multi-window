@@ -3,8 +3,8 @@ import EditIcon from '../assets/edit-icon.svg';
 import TrashIcon from '../assets/trash-icon.svg';
 import SaveIcon from '../assets/save-icon.svg';
 import CancelIcon from '../assets/cancel-icon.svg';
-import '../styles/global.css';
-import '../styles/app.css';
+import '../assets/styles/global.css';
+import '../assets/styles/app.css';
 
 interface IPC {
   send(
