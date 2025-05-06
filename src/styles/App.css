@@ -25,6 +25,11 @@
   display: table-row;
 }
 
+.no-message {
+  text-align: center;
+  margin-top: 5%;
+}
+
 .message-row > div {
   display: table-cell;
   border: 1px solid #ccc;

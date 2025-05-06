@@ -94,8 +94,12 @@ h1 {
 
 .btn-submit:hover {
   background-color: #0056b3; /* Azul mais escuro ao passar o mouse */
+  transform: scale(1.02); /* Leve aumento de tamanho ao passar o mouse */
+  transition: transform 0.2s ease; /* Animação suave para o aumento de tamanho */
 }
 
 .btn-submit:active {
   background-color: #197f00; /* Azul ainda mais escuro ao clicar */
+  transform: scale(0.98); /* Leve redução de tamanho ao clicar */
+  transition: transform 0.1s ease; /* Animação suave para a redução de tamanho */
 }
