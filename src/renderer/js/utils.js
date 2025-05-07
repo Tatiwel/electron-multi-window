@@ -11,14 +11,10 @@ if (submitButton && inputElement) {
   submitButton.addEventListener('click', () => {
     const userInput = inputElement.value;
     if (userInput) {
-      if (!newWinOpen) {
-        ipcRenderer.send('open-new-window', userInput);
-        newWinOpen = true;
-      }
+      ipcRenderer.send('open-new-window', userInput);
       ipcRenderer.send('update-value', userInput);
     }
   });
-
   // modify the value of the text field
   inputElement.addEventListener('input', (e) => {
     ipcRenderer.send('update-value', e.target.value);

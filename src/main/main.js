@@ -25,6 +25,11 @@ function createWindow() {
 }
 
 function openNewWindow(userInput) {
+  if (newWin) {
+    newWin.focus(); // Se a janela já existir, apenas traz para frente
+    return;
+  }
+
   newWin = new BrowserWindow({
     width: 600,
     height: 400,
@@ -40,7 +45,7 @@ function openNewWindow(userInput) {
   });
 
   newWin.on('closed', () => {
-    newWin = null;
+    newWin = null; // Redefine a variável para permitir a criação de uma nova janela
   });
 }
 
