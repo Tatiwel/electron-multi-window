@@ -1,13 +1,11 @@
-# electron-multi-screen
+# Electron Multiple Synchronized Windows
 
-Get Started
+* With React + TypeScript + Vite
+
+This project aims to create multiple windows that synchronize data between themselves. This removes the limitation of the user having to use only one window to build their application and allows them to interact with subsequent windows, synchronized with the parent element. Work in progress (2025/05/06)
+
+- Get Started:
 
 ```bash
-$ https://github.com/Tatiwel/electron-multi-screen.git
 
-$ cd electron-multi-screen
-
-$ npm install
-
-$ npm start
 ```
