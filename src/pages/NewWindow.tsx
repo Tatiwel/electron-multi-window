@@ -35,7 +35,7 @@ const NewWindow: React.FC = () => {
 };
 
 // Monta o componente na div com id "root"
-ReactDOM.createRoot(document.getElementById('root')!).render(
+ReactDOM.createRoot(document.getElementById('newWindowRoot')!).render(
   <React.StrictMode>
     <NewWindow />
   </React.StrictMode>
