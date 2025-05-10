@@ -35,6 +35,9 @@ Make sure you have Node.js installed on your machine. You will also need the `np
    $ npm start
    ```
 
+## Demo
+
+![Demo](misc/demo-pure-electron.gif)
 ## Project Structure
 
 ```
@@ -75,7 +78,7 @@ electron-multi-window/
 ## Technologies Used
 
 - [Electron](https://www.electronjs.org/): A framework for building desktop applications using JavaScript, HTML, and CSS.
-- [Node.js] (https://nodejs.org/) A runtime environment for JavaScript on the backend.
+- [Node.js](https://nodejs.org/): A runtime environment for JavaScript on the backend.
 
 ## Autor
 
