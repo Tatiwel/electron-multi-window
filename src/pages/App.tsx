@@ -1,8 +1,8 @@
-import React, { useState } from 'react'; // importações preservadas :contentReference[oaicite:0]{index=0}:contentReference[oaicite:1]{index=1}
-import EditIcon from '../assets/edit-icon.svg';
-import TrashIcon from '../assets/trash-icon.svg';
-import SaveIcon from '../assets/save-icon.svg';
-import CancelIcon from '../assets/cancel-icon.svg';
+import React, { useState } from 'react';
+import EditIcon from '../assets/icons/edit-icon.svg';
+import TrashIcon from '../assets/icons/trash-icon.svg';
+import SaveIcon from '../assets/icons/save-icon.svg';
+import CancelIcon from '../assets/icons/cancel-icon.svg';
 import '../assets/styles/global.css';
 import '../assets/styles/app.css';
 
@@ -99,7 +99,7 @@ const App: React.FC = () => {
 
   return (
     <div className="app-container">
-      <h1>Type Something.</h1>
+      <h1>Type Something:</h1>
       <form onSubmit={handleCreateMessage}>
         <input
           type="text"
