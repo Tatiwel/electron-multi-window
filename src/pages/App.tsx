@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import EditIcon from '../assets/icons/edit-icon.svg';
 import TrashIcon from '../assets/icons/trash-icon.svg';
 import SaveIcon from '../assets/icons/save-icon.svg';
@@ -9,13 +10,10 @@ import '../assets/styles/app.css';
 interface IPC {
   send(
     channel: 'open-new-window',
-    payload: { index: number; value: string }
+    payload: { id: string; value: string }
   ): void;
-  send(
-    channel: 'update-value',
-    payload: { index: number; value: string }
-  ): void;
-  send(channel: 'close-window', payload: { index: number }): void;
+  send(channel: 'update-value', payload: { id: string; value: string }): void;
+  send(channel: 'close-window', payload: { id: string }): void;
 }
 
 declare global {
@@ -26,9 +24,8 @@ declare global {
 
 const App: React.FC = () => {
   const [inputValue, setInputValue] = useState('');
-  const [messages, setMessages] = useState<string[]>([]);
-  // de 1 slot para N slots de edição
-  const [editingValues, setEditingValues] = useState<Record<number, string>>(
+  const [messages, setMessages] = useState<{ id: string; text: string }[]>([]);
+  const [editingValues, setEditingValues] = useState<Record<string, string>>(
     {}
   );
 
@@ -36,7 +33,8 @@ const App: React.FC = () => {
   const handleCreateMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputValue.trim()) return;
-    setMessages((prev) => [...prev, inputValue]);
+    const newMessage = { id: uuidv4(), text: inputValue };
+    setMessages((prev) => [...prev, newMessage]);
     setInputValue('');
   };
 
@@ -46,55 +44,58 @@ const App: React.FC = () => {
   };
 
   // Abre janela de edição e inicializa slot
-  const handleEditClick = (index: number) => {
-    setEditingValues((prev) => ({ ...prev, [index]: messages[index] }));
+  const handleEditClick = (id: string) => {
+    const message = messages.find((msg) => msg.id === id);
+    if (!message) return;
+    setEditingValues((prev) => ({ ...prev, [id]: message.text }));
     window.ipcRenderer.send('open-new-window', {
-      index,
-      value: messages[index],
+      id,
+      value: message.text,
     });
   };
 
   // Sincroniza valor enquanto digita
-  const handleEditingSync = (index: number, newValue: string) => {
-    setEditingValues((prev) => ({ ...prev, [index]: newValue }));
-    window.ipcRenderer.send('update-value', { index, value: newValue });
+  const handleEditingSync = (id: string, newValue: string) => {
+    setEditingValues((prev) => ({ ...prev, [id]: newValue }));
+    window.ipcRenderer.send('update-value', { id, value: newValue });
   };
 
   // Salva edição de um slot específico
-  const handleSave = (index: number) => {
-    const updated = [...messages];
-    updated[index] = editingValues[index];
-    setMessages(updated);
-    // remove slot de edição
+  const handleSave = (id: string) => {
+    setMessages((prev) =>
+      prev.map((msg) =>
+        msg.id === id ? { ...msg, text: editingValues[id] } : msg
+      )
+    );
     setEditingValues((prev) => {
-      const { [index]: _, ...rest } = prev; // `_` is flagged as unused
+      const { [id]: _, ...rest } = prev;
       return rest;
     });
   };
 
   // Cancela edição de um slot específico
-  const handleCancel = (index: number) => {
-    // reverte slot de edição para o valor original
+  const handleCancel = (id: string) => {
+    const message = messages.find((msg) => msg.id === id);
+    if (!message) return;
     window.ipcRenderer.send('update-value', {
-      index,
-      value: messages[index],
+      id,
+      value: message.text,
     });
-    // fecha janela de edição
-    window.ipcRenderer.send('close-window', { index });
-    // remove slot de edição
+    window.ipcRenderer.send('close-window', { id });
     setEditingValues((prev) => {
-      const { [index]: _, ...rest } = prev;
+      const { [id]: _, ...rest } = prev;
       return rest;
     });
   };
 
   // Deleta mensagem + limpa qualquer slot aberto
-  const handleDelete = (index: number) => {
-    setMessages((prev) => prev.filter((_, i) => i !== index));
+  const handleDelete = (id: string) => {
+    setMessages((prev) => prev.filter((msg) => msg.id !== id));
     setEditingValues((prev) => {
-      const { [index]: _, ...rest } = prev;
+      const { [id]: _, ...rest } = prev;
       return rest;
     });
+    window.ipcRenderer.send('close-window', { id });
   };
 
   return (
@@ -127,24 +128,24 @@ const App: React.FC = () => {
             </div>
 
             {messages.map((message, index) => (
-              <div key={index} className="message-row">
+              <div key={message.id} className="message-row">
                 <div className="message-index">{index + 1}.</div>
 
-                {index in editingValues ? (
+                {message.id in editingValues ? (
                   <>
                     <div className="message-text">
                       <input
                         type="text"
-                        value={editingValues[index]}
+                        value={editingValues[message.id]}
                         onChange={(e) =>
-                          handleEditingSync(index, e.target.value)
+                          handleEditingSync(message.id, e.target.value)
                         }
                         className="input-edit"
                       />
                     </div>
                     <div className="message-action">
                       <button
-                        onClick={() => handleSave(index)}
+                        onClick={() => handleSave(message.id)}
                         className="btn-save"
                       >
                         <img
@@ -154,7 +155,7 @@ const App: React.FC = () => {
                         />
                       </button>
                       <button
-                        onClick={() => handleCancel(index)}
+                        onClick={() => handleCancel(message.id)}
                         className="btn-cancel"
                       >
                         <img
@@ -167,10 +168,10 @@ const App: React.FC = () => {
                   </>
                 ) : (
                   <>
-                    <div className="message-text">{message}</div>
+                    <div className="message-text">{message.text}</div>
                     <div className="message-action">
                       <button
-                        onClick={() => handleEditClick(index)}
+                        onClick={() => handleEditClick(message.id)}
                         className="btn-edit"
                       >
                         <img
@@ -180,7 +181,7 @@ const App: React.FC = () => {
                         />
                       </button>
                       <button
-                        onClick={() => handleDelete(index)}
+                        onClick={() => handleDelete(message.id)}
                         className="btn-delete"
                       >
                         <img

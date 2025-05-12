@@ -13,8 +13,8 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
   : RENDERER_DIST;
 
 let mainWindow: BrowserWindow | null = null;
-// agora mantemos várias janelas num map
-const windows: Record<number, BrowserWindow> = {};
+// agora mantemos várias janelas num map com identificadores únicos
+const windows: Record<string, BrowserWindow> = {};
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -41,12 +41,12 @@ function createWindow() {
   });
 }
 
-// Abre ou foca janela específica
+// Abre ou foca janela específica usando UUID
 ipcMain.on(
   'open-new-window',
-  async (_evt, { index, value }: { index: number; value: string }) => {
-    if (windows[index]) {
-      windows[index].focus();
+  async (_evt, { id, value }: { id: string; value: string }) => {
+    if (windows[id]) {
+      windows[id].focus();
       return;
     }
     const win = new BrowserWindow({
@@ -58,7 +58,7 @@ ipcMain.on(
         nodeIntegration: false,
       },
     });
-    windows[index] = win;
+    windows[id] = win;
 
     if (VITE_DEV_SERVER_URL) {
       await win.loadURL(VITE_DEV_SERVER_URL + '/newwindow.html');
@@ -70,28 +70,28 @@ ipcMain.on(
     win.webContents.send('init-value', value);
 
     win.on('closed', () => {
-      delete windows[index];
+      delete windows[id];
     });
   }
 );
 
-// Repassa atualização só para a janela correta
+// Repassa atualização só para a janela correta usando UUID
 ipcMain.on(
   'update-value',
-  (_evt, { index, value }: { index: number; value: string }) => {
-    const win = windows[index];
+  (_evt, { id, value }: { id: string; value: string }) => {
+    const win = windows[id];
     if (win) {
       win.webContents.send('update-value', value);
     }
   }
 );
 
-// Fecha a janela de edição de índice X
-ipcMain.on('close-window', (_evt, { index }: { index: number }) => {
-  const win = windows[index];
+// Fecha a janela de edição de identificador único
+ipcMain.on('close-window', (_evt, { id }: { id: string }) => {
+  const win = windows[id];
   if (win) {
     win.close();
-    delete windows[index];
+    delete windows[id];
   }
 });
 
