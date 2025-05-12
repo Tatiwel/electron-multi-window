@@ -15,7 +15,7 @@
 
 .no_messages_yet {
   text-align: center;
-  margin-top: 5%;
+  margin-top: 10%;
   font-size: 1.2rem;
   color: #999; /* cor cinza para o texto */
 }
@@ -38,6 +38,14 @@
   border: 1px solid #ccc;
   padding: 10px;
   text-align: left;
+}
+
+.message-row:nth-child(even) {
+  background-color: #f9f9f9; /* cor de fundo alternada para linhas pares */
+}
+
+.message-text {
+  color: #000000; /* cor do texto */
 }
 
 .message-action {
