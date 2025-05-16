@@ -126,3 +126,15 @@ Developed by [Daniel (Tatiwel)](https://github.com/Tatiwel)
 ## 📄 License
 
 This project is licensed under the ISC license. See the [package.json](package.json) file for more details.
+
+---
+
+## 🔗 Pure Electron Version
+
+If you are interested in the same synchronized multi-window logic implemented using pure Electron (JavaScript only, no frameworks), check out the dedicated branch:
+
+👉 [pure-electron branch on GitHub](https://github.com/Tatiwel/electron-multi-window/tree/pure-electron)
+
+This branch demonstrates the core synchronization logic without React, TypeScript, or Vite, for those who prefer a minimal and framework-free approach.
+
+---
