@@ -1,9 +1,3 @@
----
-name: Bug report
-about: Report a problem or unexpected behavior in the Electron Multi-Window app
-labels: bug
----
-
 ## Describe the bug
 
 A clear and concise description of what the bug is.

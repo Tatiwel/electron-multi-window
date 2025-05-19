@@ -1,8 +1,3 @@
----
-name: Custom issue
-about: Use this template for questions, documentation requests, or other topics not covered by bug/feature templates
----
-
 ## Describe your issue, question, or feedback
 
 A clear and concise description of your issue, suggestion, or question related to the Electron Multi-Window app.
