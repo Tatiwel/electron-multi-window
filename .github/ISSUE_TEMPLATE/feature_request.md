@@ -1,9 +1,3 @@
----
-name: Feature request
-about: Suggest an improvement or new feature for the Electron Multi-Window app
-labels: enhancement
----
-
 ## Is your feature request related to a problem? Please describe.
 
 A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
