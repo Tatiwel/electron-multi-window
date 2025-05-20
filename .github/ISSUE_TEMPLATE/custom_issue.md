@@ -1,7 +1,8 @@
-## Describe your issue, question, or feedback
+---
+name: Custom issue template
+about: Blank template for other issue types
+---
 
-A clear and concise description of your issue, suggestion, or question related to the Electron Multi-Window app.
+Describe the purpose of this issue here.
 
-## Relevant context
-
-Add any other context, screenshots, or information that may help us understand your request. If this is about documentation, usage, or general feedback, please specify.
+<!-- Add details, context, or any relevant information. -->
