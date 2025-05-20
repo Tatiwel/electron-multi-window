@@ -1,19 +1,37 @@
-## Describe the bug
+---
+name: Bug report
+about: Report a bug or unexpected behavior in Electron Multiple Synchronized Windows
+title: '[BUG] '
+labels: bug
+assignees: ''
+---
 
-A clear and concise description of what the bug is.
+**Describe the bug**
+A clear and concise description of what is not working as expected in the app.
 
-## To Reproduce
-
+**How to reproduce**
 Steps to reproduce the behavior:
 
-1. ...
-2. ...
+1. Open the application
+2. Perform the action (e.g., create a message, open a new window, edit a field...)
 3. ...
+4. See the error
 
-## Expected behavior
+**Expected behavior**
+Describe what you expected to happen.
 
-A clear and concise description of what you expected to happen.
+**Screenshots**
+If applicable, add screenshots to help explain your problem.
 
-## Screenshots or Console Logs
+**Environment (fill in the information below):**
 
-If applicable, add screenshots or paste relevant error logs from the Electron console to help explain your problem.
+- OS: [e.g. Windows 11, macOS Ventura, Ubuntu 22.04]
+- App version: [e.g. 1.0.0]
+- Package manager: [npm, bun]
+- Electron: [e.g. 28.0.0]
+
+**Affects multiple windows?**
+Does this bug happen in all open windows, or only in a specific one? Please describe.
+
+**Additional context**
+Add any other relevant information about the problem here.

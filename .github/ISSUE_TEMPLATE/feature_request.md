@@ -1,15 +1,22 @@
-## Is your feature request related to a problem? Please describe.
+---
+name: Feature request
+about: Suggest a new feature for Electron Multiple Synchronized Windows
+title: '[FEATURE] '
+labels: enhancement
+assignees: ''
+---
 
-A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
+**Is your feature request related to a problem? Please describe.**
+Explain clearly and concisely what problem or limitation you encountered while using the app.
 
-## Describe the solution you'd like
+**Describe the solution you'd like**
+Explain clearly and concisely what you would like to happen or be implemented.
 
-A clear and concise description of what you want to happen in the app.
+**Describe alternatives you've considered**
+List any alternative solutions or features you have thought about.
 
-## Describe alternatives you've considered
+**How would this feature interact with multiple windows?**
+Please describe if this feature should be available in all windows, or only in the main/secondary window.
 
-A clear and concise description of any alternative solutions or features you've considered.
-
-## Additional context
-
-Add any other context, screenshots, or use cases for this feature request. If it relates to Electron, multi-window, or synchronization, please specify.
+**Additional context**
+Add any other information or screenshots that help explain your suggestion.
