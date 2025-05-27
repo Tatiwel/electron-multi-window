@@ -7,21 +7,6 @@ import CancelIcon from '../assets/icons/cancel-icon.svg';
 import '../assets/styles/global.css';
 import '../assets/styles/app.css';
 
-interface IPC {
-  send(
-    channel: 'open-new-window',
-    payload: { id: string; value: string }
-  ): void;
-  send(channel: 'update-value', payload: { id: string; value: string }): void;
-  send(channel: 'close-window', payload: { id: string }): void;
-}
-
-declare global {
-  interface Window {
-    IpcRenderer: IPC;
-  }
-}
-
 const App: React.FC = () => {
   const [inputValue, setInputValue] = useState('');
   const [messages, setMessages] = useState<{ id: string; text: string }[]>([]);
