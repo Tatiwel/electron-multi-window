@@ -61,9 +61,9 @@ ipcMain.on(
     windows[id] = win;
 
     if (VITE_DEV_SERVER_URL) {
-      await win.loadURL(VITE_DEV_SERVER_URL + '/newwindow.html');
+      await win.loadURL(VITE_DEV_SERVER_URL + '/newWindow.html');
     } else {
-      await win.loadFile(path.join(RENDERER_DIST, 'newwindow.html'));
+      await win.loadFile(path.join(RENDERER_DIST, 'newWindow.html'));
     }
 
     // envia valor inicial só para esta janela

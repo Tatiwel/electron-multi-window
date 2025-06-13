@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
-import '../assets/styles/newwindow.css';
+import '../assets/styles/newWindow.css';
 
 const NewWindow: React.FC = () => {
   const [userMessage, setUserMessage] = useState('');
@@ -25,7 +25,7 @@ const NewWindow: React.FC = () => {
   }, []);
 
   return (
-    <div className="newwindow-container">
+    <div className="newWindow-container">
       <h1>User Message</h1>
       <div className="message-box">
         {userMessage || 'No messages received.'}

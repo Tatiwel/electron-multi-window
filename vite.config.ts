@@ -20,7 +20,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: path.resolve(__dirname, 'index.html'),
-        newwindow: path.resolve(__dirname, 'newwindow.html'),
+        newWindow: path.resolve(__dirname, 'newWindow.html'),
       },
     },
   },
