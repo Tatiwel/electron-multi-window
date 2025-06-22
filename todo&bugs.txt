@@ -1,7 +1,5 @@
 TODOs:
 
-1 - Se uma janela estiver aberta, quando é excluida a mensagem a janela deve ser fechada
-
 2 - organizar as funções da classe do IPC, que estao tudo dentro do app.tsx
 
 3 - corrigir toda a interface, principalemente elementos fora de escala e revisar o CSS
