@@ -9,6 +9,8 @@ assignees: ''
 **Describe the bug**
 A clear and concise description of what is not working as expected in the app.
 
+> **Before opening a new issue,** please search existing issues to avoid duplicates.
+
 **How to reproduce**
 Steps to reproduce the behavior:
 

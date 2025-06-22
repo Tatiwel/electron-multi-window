@@ -9,6 +9,8 @@ assignees: ''
 **Is your feature request related to a problem? Please describe.**
 Explain clearly and concisely what problem or limitation you encountered while using the app.
 
+> **Before opening a new issue,** please search existing issues to avoid duplicates.
+
 **Describe the solution you'd like**
 Explain clearly and concisely what you would like to happen or be implemented.
 

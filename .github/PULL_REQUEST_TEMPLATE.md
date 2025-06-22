@@ -16,6 +16,11 @@ Closes #(issue number), if applicable.
 - [ ] Refactor
 - [ ] Other (describe):
 
+**Branch and Commit Guidelines**
+Please follow the workflow described in [CONTRIBUTING.md](CONTRIBUTING.md):
+- Bug fixes: branch from `master` using `fix/` prefix and `fix:` commit messages.
+- New features: branch from `development` using `feature/` prefix and `feat:` commit messages.
+
 **Checklist**
 - [ ] My code follows the project style and guidelines
 - [ ] I have tested my changes and they work as expected

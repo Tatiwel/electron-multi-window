@@ -117,6 +117,12 @@ A robust window index management system is implemented to ensure that each windo
 
 ---
 
+## 🤝 Contributing
+
+Interested in contributing? Please read our [CONTRIBUTING guide](.github/CONTRIBUTING.md) for details on the workflow, branch naming and commit conventions.
+
+---
+
 ## 👤 Author
 
 Developed by [Daniel (Tatiwel)](https://github.com/Tatiwel)

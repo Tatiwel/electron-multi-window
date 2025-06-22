@@ -9,10 +9,17 @@ This project demonstrates how to create a modern Electron application with React
 ## 🛠️ How to Contribute
 
 1. **Fork the repository** and clone it locally.
-2. **Create a new branch** for your feature or bugfix:
-   ```pwsh
-   git checkout -b feature/your-feature-name
-   ```
+2. **Choose the correct base branch and create your branch**
+   - **Bug fixes or urgent changes** should branch from `master` using the prefix `fix/`.
+     ```pwsh
+     git checkout master
+     git checkout -b fix/short-description
+     ```
+   - **New features or ideas** should branch from `development` using the prefix `feature/`.
+     ```pwsh
+     git checkout development
+     git checkout -b feature/short-description
+     ```
 3. **Install dependencies** (choose one):
    - With Bun:
      ```pwsh
@@ -39,7 +46,10 @@ This project demonstrates how to create a modern Electron application with React
      # or
      npm run lint
      ```
-7. **Commit your changes** with clear and descriptive messages.
+7. **Commit your changes** using [semantic commit messages](https://www.conventionalcommits.org/):
+   - `fix:` for bug fixes or patches
+   - `feat:` for new features
+   - Keep the message short and describe what was done
 8. **Push your branch** and open a Pull Request (PR) on GitHub.
 
 ## 🧑‍💻 Code Style
