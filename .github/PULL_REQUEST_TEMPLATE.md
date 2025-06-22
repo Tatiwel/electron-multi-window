@@ -18,6 +18,8 @@ Closes #(issue number), if applicable.
 
 **Checklist**
 - [ ] My code follows the project style and guidelines
+- [ ] Branch name follows `fix/`, `feature/`, or `refactor/` convention and is based on the correct branch
+- [ ] Commits use semantic messages like `fix:`, `feat:`, or `refactor:`
 - [ ] I have tested my changes and they work as expected
 - [ ] I have updated documentation if needed
 - [ ] I have linked related issues

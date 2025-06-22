@@ -137,4 +137,11 @@ If you are interested in the same synchronized multi-window logic implemented us
 
 This branch demonstrates the core synchronization logic without React, TypeScript, or Vite, for those who prefer a minimal and framework-free approach.
 
+## 🤝 Contributing
+
+We welcome pull requests! Please read our [CONTRIBUTING guidelines](.github/CONTRIBUTING.md) for details on
+branch naming (e.g., `fix/`, `feature/`, `refactor/`) and semantic commit messages.
+Our commit hooks (powered by Husky and Commitlint) will reject commits that do
+not follow these conventions.
+
 ---
