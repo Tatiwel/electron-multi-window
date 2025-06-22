@@ -1,10 +1,10 @@
-/* src/styles/newwindow.css */
+/* src/styles/newWindow.css */
 
 /* Reutiliza os estilos globais */
 @import './global.css';
 
 /* Container específico para a nova janela */
-.newwindow-container {
+.newWindow-container {
   background-color: #fff;
   padding: 2rem;
   border-radius: 8px;
@@ -15,7 +15,7 @@
 }
 
 /* Estilo para o título da nova janela */
-.newwindow-container h1 {
+.newWindow-container h1 {
   margin-bottom: 1.5rem;
   font-size: 1.5rem;
 }
@@ -30,7 +30,7 @@
   color: #555;
 }
 
-/* src/styles/newwindow.css */
+/* src/styles/newWindow.css */
 
 .message-box {
   padding: 1rem;

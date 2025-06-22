@@ -86,13 +86,13 @@ npm run dev
 electron-multi-window/
 ├── electron/           # Electron main process code (main/preload)
 ├── src/
-│   ├── pages/          # React components (App, NewWindow)
+│   ├── pages/          # React components (App, newWindow)
 │   └── assets/         # Styles and icons
 ├── public/             # Public assets
 ├── demo/               # GIFs and demos
 ├── dist-electron/      # Electron build
 ├── index.html          # Main HTML
-├── newwindow.html      # Secondary window HTML
+├── newWindow.html      # Secondary window HTML
 ├── package.json        # Configurations and scripts
 └── ...
 ```
