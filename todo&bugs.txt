@@ -1,8 +1,8 @@
 TODOs:
 
-2 - organizar as funções da classe do IPC, que estao tudo dentro do app.tsx
+1 - organizar as funções da classe do IPC, que estao tudo dentro do app.tsx
 
-3 - corrigir toda a interface, principalemente elementos fora de escala e revisar o CSS
+2 - corrigir toda a interface, principalemente elementos fora de escala e revisar o CSS
 
 BUGs:
 
