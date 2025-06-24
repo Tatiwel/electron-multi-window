@@ -35,3 +35,8 @@ Does this bug happen in all open windows, or only in a specific one? Please desc
 
 **Additional context**
 Add any other relevant information about the problem here.
+
+---
+
+If you plan to work on this bug, create a branch from `master` using the prefix
+`fix/` and follow the steps in our [contributing guide](../CONTRIBUTING.md).

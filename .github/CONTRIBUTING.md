@@ -9,9 +9,18 @@ This project demonstrates how to create a modern Electron application with React
 ## 🛠️ How to Contribute
 
 1. **Fork the repository** and clone it locally.
-2. **Create a new branch** for your feature or bugfix:
-   ```pwsh
-   git checkout -b feature/your-feature-name
+2. **Choose the base branch and create your working branch**
+   - For urgent fixes or changes already in production, start from `master` and use the prefix `fix/`.
+   - For new features or refactors, start from `development` and use `feature/` or `refactor/`.
+   Example:
+   ```bash
+   git checkout master
+   git checkout -b fix/typo-correction
+   ```
+   or
+   ```bash
+   git checkout development
+   git checkout -b feature/my-new-idea
    ```
 3. **Install dependencies** (choose one):
    - With Bun:
@@ -39,7 +48,15 @@ This project demonstrates how to create a modern Electron application with React
      # or
      npm run lint
      ```
-7. **Commit your changes** with clear and descriptive messages.
+7. **Commit your changes** using [semantic commit messages](https://www.conventionalcommits.org/en/v1.0.0/):
+   ```
+   fix: brief description of the correction
+   feat: brief description of the feature
+   refactor: brief description of the refactor
+   ```
+   Add a longer description in the commit body when necessary.
+   Commit messages are validated automatically with `commitlint`.
+   After installing dependencies (`bun install` or `npm install`), Git hooks are set up via Husky so commits that don't follow the format are rejected.
 8. **Push your branch** and open a Pull Request (PR) on GitHub.
 
 ## 🧑‍💻 Code Style
