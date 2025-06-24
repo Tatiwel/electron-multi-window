@@ -11,7 +11,7 @@ This project demonstrates how to create a modern Electron application with React
 1. **Fork the repository** and clone it locally.
 2. **Choose the base branch and create your working branch**
    - For urgent fixes or changes already in production, start from `master` and use the prefix `fix/`.
-   - For new features or refactors, start from `development` and use `feature/` or `refactor/`.
+   - For new features, chores, or refactors, start from `development` and use `feature/`, `chore/`, or `refactor/`.
    Example:
    ```bash
    git checkout master
@@ -21,6 +21,8 @@ This project demonstrates how to create a modern Electron application with React
    ```bash
    git checkout development
    git checkout -b feature/my-new-idea
+   # or a maintenance task
+   git checkout -b chore/update-dependencies
    ```
 3. **Install dependencies** (choose one):
    - With Bun:
@@ -52,6 +54,7 @@ This project demonstrates how to create a modern Electron application with React
    ```
    fix: brief description of the correction
    feat: brief description of the feature
+   chore: brief description of maintenance work
    refactor: brief description of the refactor
    ```
    Add a longer description in the commit body when necessary.

@@ -12,7 +12,7 @@ Closes #(issue number), if applicable.
 **Base branch**
 Select the branch you are merging into:
 - [ ] `master` (hotfixes or urgent corrections)
-- [ ] `development` (new features or refactors)
+- [ ] `development` (new features, chores, or refactors)
 
 **Type of change**
 - [ ] Bug fix
@@ -23,8 +23,8 @@ Select the branch you are merging into:
 
 **Checklist**
 - [ ] My code follows the project style and guidelines
-- [ ] My branch name follows the pattern (`fix/*`, `feature/*`, `refactor/*`)
-- [ ] My commits use semantic messages (`fix:`, `feat:`, `refactor:`)
+- [ ] My branch name follows the pattern (`fix/*`, `feature/*`, `chore/*`, `refactor/*`)
+- [ ] My commits use semantic messages (`fix:`, `feat:`, `chore:`, `refactor:`)
 - [ ] I have tested my changes and they work as expected
 - [ ] I have updated documentation if needed
 - [ ] I have linked related issues

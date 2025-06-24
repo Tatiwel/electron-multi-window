@@ -26,3 +26,4 @@ Add any other information or screenshots that help explain your suggestion.
 Interested in implementing this feature yourself? Start from the `development`
 branch, create a `feature/` prefixed branch, and see our
 [contributing guide](../CONTRIBUTING.md) for commit and PR instructions.
+For maintenance or tooling changes, use a `chore/` branch from `development`.

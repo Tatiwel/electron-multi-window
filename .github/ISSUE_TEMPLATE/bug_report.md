@@ -40,3 +40,4 @@ Add any other relevant information about the problem here.
 
 If you plan to work on this bug, create a branch from `master` using the prefix
 `fix/` and follow the steps in our [contributing guide](../CONTRIBUTING.md).
+For maintenance not tied directly to a bug, use a `chore/` branch from `development`.
