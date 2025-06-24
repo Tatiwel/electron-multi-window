@@ -27,6 +27,7 @@ We follow a structured workflow to keep development organized.
 - For new features, chores, or refactors, branch from `development` using `feature/`, `chore/`, or `refactor/`.
 - Use semantic commit messages such as `fix: ...`, `feat: ...`, `chore: ...`, and `refactor: ...`.
 - Commit messages are checked automatically via **commitlint** when you commit.
+- If a commit is rejected, you'll see a hint like `missing prefix. Use "fix:", "feat:", "chore:", or "refactor:"`.
 - Running `npm install` or `bun install` sets up these hooks automatically.
 
 See [CONTRIBUTING.md](.github/CONTRIBUTING.md) for full guidelines.

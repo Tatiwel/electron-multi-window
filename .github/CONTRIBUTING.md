@@ -60,6 +60,7 @@ This project demonstrates how to create a modern Electron application with React
    Add a longer description in the commit body when necessary.
    Commit messages are validated automatically with `commitlint`.
    After installing dependencies (`bun install` or `npm install`), Git hooks are set up via Husky so commits that don't follow the format are rejected.
+   If a commit fails, the console will mention the missing prefix and suggest a valid example, such as `fix: correct typo`.
 8. **Push your branch** and open a Pull Request (PR) on GitHub.
 
 ## 🧑‍💻 Code Style
