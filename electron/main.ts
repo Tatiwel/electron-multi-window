@@ -14,9 +14,9 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
   : RENDERER_DIST;
 
 const windowManager = new WindowManager({
-  viteDevServerUrl: VITE_DEV_SERVER_URL,
-  rendererDist: RENDERER_DIST,
-  vitePublic: process.env.VITE_PUBLIC!,
+  VITE_DEV_SERVER_URL: VITE_DEV_SERVER_URL,
+  RENDERER_DIST: RENDERER_DIST,
+  VITE_PUBLIC: process.env.VITE_PUBLIC!,
   dirname: __dirname,
 });
 

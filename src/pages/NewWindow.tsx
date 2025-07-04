@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
-import '../assets/styles/newwindow.css';
+import '../assets/styles/newWindow.css';
 
 const NewWindow: React.FC = () => {
   const [userMessage, setUserMessage] = useState('');
