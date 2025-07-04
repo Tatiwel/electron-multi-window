@@ -1,43 +1,24 @@
 import { BrowserWindow } from 'electron';
 import path from 'node:path';
+import {
+  createMainWindow,
+  MainWindowOptions,
+} from '../windows/mainWindow';
+import { createChildWindow } from '../windows/childWindow';
+
+export interface WindowManagerOptions extends MainWindowOptions {}
 
 export class WindowManager {
   private windows: Record<string, BrowserWindow> = {};
   private mainWindow: BrowserWindow | null = null;
-  private readonly VITE_DEV_SERVER_URL: string | undefined;
-  private readonly RENDERER_DIST: string;
-  private readonly VITE_PUBLIC: string;
-  private readonly __dirname: string;
+  private readonly options: WindowManagerOptions;
 
-  constructor(options: {
-    viteDevServerUrl: string | undefined;
-    rendererDist: string;
-    vitePublic: string;
-    dirname: string;
-  }) {
-    this.VITE_DEV_SERVER_URL = options.viteDevServerUrl;
-    this.RENDERER_DIST = options.rendererDist;
-    this.VITE_PUBLIC = options.vitePublic;
-    this.__dirname = options.dirname;
+  constructor(options: WindowManagerOptions) {
+    this.options = options;
   }
 
   createMainWindow() {
-    this.mainWindow = new BrowserWindow({
-      width: 800,
-      height: 600,
-      icon: path.join(this.VITE_PUBLIC, 'electron-vite.svg'),
-      webPreferences: {
-        preload: path.join(this.__dirname, 'preload.mjs'),
-        contextIsolation: true,
-        nodeIntegration: false,
-      },
-    });
-
-    if (this.VITE_DEV_SERVER_URL) {
-      this.mainWindow.loadURL(this.VITE_DEV_SERVER_URL);
-    } else {
-      this.mainWindow.loadFile(path.join(this.RENDERER_DIST, 'index.html'));
-    }
+    this.mainWindow = createMainWindow(this.options);
 
     this.mainWindow.on('closed', () => {
       this.mainWindow = null;
@@ -58,22 +39,16 @@ export class WindowManager {
       this.windows[id].focus();
       return;
     }
-    const win = new BrowserWindow({
-      width: 600,
-      height: 400,
-      webPreferences: {
-        preload: path.join(this.__dirname, 'preload.mjs'),
-        contextIsolation: true,
-        nodeIntegration: false,
-      },
-    });
+    const win = createChildWindow(this.options);
     this.windows[id] = win;
 
     const load = async () => {
-      if (this.VITE_DEV_SERVER_URL) {
-        await win.loadURL(this.VITE_DEV_SERVER_URL + '/newwindow.html');
+      if (this.options.VITE_DEV_SERVER_URL) {
+        await win.loadURL(this.options.VITE_DEV_SERVER_URL + '/newwindow.html');
       } else {
-        await win.loadFile(path.join(this.RENDERER_DIST, 'newwindow.html'));
+        await win.loadFile(
+          path.join(this.options.RENDERER_DIST, 'newwindow.html')
+        );
       }
       win.webContents.send('init-value', value);
       if (onReady) onReady(win);
