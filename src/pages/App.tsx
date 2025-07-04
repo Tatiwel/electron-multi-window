@@ -6,6 +6,11 @@ import SaveIcon from '../assets/icons/save-icon.svg';
 import CancelIcon from '../assets/icons/cancel-icon.svg';
 import '../assets/styles/global.css';
 import '../assets/styles/app.css';
+import {
+  openNewWindow,
+  updateWindowValue,
+  closeWindow,
+} from '../services/windowIpc';
 
 const App: React.FC = () => {
   const [inputValue, setInputValue] = useState('');
@@ -33,16 +38,13 @@ const App: React.FC = () => {
     const message = messages.find((msg) => msg.id === id);
     if (!message) return;
     setEditingValues((prev) => ({ ...prev, [id]: message.text }));
-    window.ipcRenderer.send('open-new-window', {
-      id,
-      value: message.text,
-    });
+    openNewWindow(id, message.text);
   };
 
   // Sincroniza valor enquanto digita
   const handleEditingSync = (id: string, newValue: string) => {
     setEditingValues((prev) => ({ ...prev, [id]: newValue }));
-    window.ipcRenderer.send('update-value', { id, value: newValue });
+    updateWindowValue(id, newValue);
   };
 
   // Salva edição de um slot específico
@@ -62,11 +64,8 @@ const App: React.FC = () => {
   const handleCancel = (id: string) => {
     const message = messages.find((msg) => msg.id === id);
     if (!message) return;
-    window.ipcRenderer.send('update-value', {
-      id,
-      value: message.text,
-    });
-    window.ipcRenderer.send('close-window', { id });
+    updateWindowValue(id, message.text);
+    closeWindow(id);
     setEditingValues((prev) => {
       const { [id]: _, ...rest } = prev;
       return rest;
@@ -80,7 +79,7 @@ const App: React.FC = () => {
       const { [id]: _, ...rest } = prev;
       return rest;
     });
-    window.ipcRenderer.send('close-window', { id });
+    closeWindow(id);
   };
 
   return (
