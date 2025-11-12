@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import EditIcon from '../assets/icons/edit-icon.svg';
 import TrashIcon from '../assets/icons/trash-icon.svg';
@@ -7,20 +7,9 @@ import CancelIcon from '../assets/icons/cancel-icon.svg';
 import '../assets/styles/global.css';
 import '../assets/styles/app.css';
 
-interface IPC {
-  send(
-    channel: 'open-new-window',
-    payload: { id: string; value: string }
-  ): void;
-  send(channel: 'update-value', payload: { id: string; value: string }): void;
-  send(channel: 'close-window', payload: { id: string }): void;
-}
+// Note: electron types and preload expose `window.ipcRenderer` elsewhere in the
+// project; no custom window augmentation is required here.
 
-declare global {
-  interface Window {
-    IpcRenderer: IPC;
-  }
-}
 
 const App: React.FC = () => {
   const [inputValue, setInputValue] = useState('');
@@ -28,6 +17,8 @@ const App: React.FC = () => {
   const [editingValues, setEditingValues] = useState<Record<string, string>>(
     {}
   );
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalMessage, setModalMessage] = useState('');
 
   // Cria nova mensagem
   const handleCreateMessage = (e: React.FormEvent) => {
@@ -98,6 +89,26 @@ const App: React.FC = () => {
     window.ipcRenderer.send('close-window', { id });
   };
 
+  // Modal helpers
+  const openModal = (text: string) => {
+    setModalMessage(text);
+    setModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setModalOpen(false);
+    setModalMessage('');
+  };
+
+  // close modal on ESC
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && modalOpen) closeModal();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [modalOpen]);
+
   return (
     <div className="app-container">
       <h1>Type Something:</h1>
@@ -124,7 +135,8 @@ const App: React.FC = () => {
             <div className="messages-header">
               <div>Index</div>
               <div>Message</div>
-              <div style={{ width: '60px' }}>Action</div>
+              {/* Keep header width consistent with CSS (.message-row > div.message-action) */}
+              <div style={{ width: '96px' }}>Action</div>
             </div>
 
             {messages.map((message, index) => (
@@ -168,7 +180,18 @@ const App: React.FC = () => {
                   </>
                 ) : (
                   <>
-                    <div className="message-text">{message.text}</div>
+                    <div
+                      className="message-text"
+                      role="button"
+                      tabIndex={0}
+                      title={typeof message.text === 'string' ? 'Click to view full message' : ''}
+                      onClick={() => openModal(message.text)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') openModal(message.text);
+                      }}
+                    >
+                      {message.text}
+                    </div>
                     <div className="message-action">
                       <button
                         onClick={() => handleEditClick(message.id)}
@@ -198,6 +221,16 @@ const App: React.FC = () => {
           </div>
         )}
       </div>
+
+      {modalOpen && (
+        <div className={`modal-overlay ${modalOpen ? 'open' : ''}`} onClick={closeModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close" onClick={closeModal} aria-label="Close">×</button>
+            <div className="modal-message-body">{modalMessage}</div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

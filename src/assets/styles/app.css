@@ -2,14 +2,19 @@
 .messages-grid {
   display: table;
   width: 100%;
-  border-collapse: collapse; /* remove o espaçamento entre as bordas */
-  margin-top: 20px; /* opcional: espaço acima da tabela */
+  table-layout: fixed;
+  /* important: enable truncation for cells */
+  border-collapse: collapse;
+  /* remove o espaçamento entre as bordas */
+  margin-top: 20px;
+  /* opcional: espaço acima da tabela */
 }
 
 /* Cabeçalho */
 .messages-header {
   display: table-row;
-  background-color: #f0f0f0; /* cor de fundo para diferenciar o cabeçalho */
+  background-color: #f0f0f0;
+  /* cor de fundo para diferenciar o cabeçalho */
   font-weight: bold;
 }
 
@@ -17,15 +22,62 @@
   text-align: center;
   margin-top: 10%;
   font-size: 1.2rem;
-  color: #999; /* cor cinza para o texto */
+  color: #999;
+  /* cor cinza para o texto */
 }
 
 
-.messages-header > div {
+.messages-header>div {
   display: table-cell;
   border: 1px solid #ccc;
   padding: 10px;
   text-align: center;
+}
+
+/* define column widths: Index (fixed), Message (auto / flexible), Action (fixed) */
+.messages-header>div:first-child,
+.message-row>div.message-index {
+  /* give a bit more breathing room for the index column */
+  width: 80px;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.messages-header>div:last-child,
+.message-row>div.message-action {
+  /* make action column slightly wider to fit two small buttons side-by-side */
+  width: 96px;
+  box-sizing: border-box;
+}
+
+/* Message column - truncation and responsive behaviour */
+/*
+  NOTE: separate header and body selectors so we can add spacing to the
+  message cells without moving the header title. Previously a combined
+  selector applied `padding-left` to both header and body which shifted
+  the "Message" column title.
+*/
+.messages-header>div:nth-child(2) {
+  /* keep header title centered and using the default header padding */
+}
+
+.message-row>div.message-text {
+  /* will receive remaining table width */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+  vertical-align: middle;
+  /* increase font size slightly so messages are easier to read */
+  font-size: 0.98rem;
+  line-height: 1.3;
+  /* spacing only for body cells (distance from the index column) */
+  padding-left: 10px;
+}
+
+/* Make message text visually interactive */
+.message-text:hover {
+  background: rgba(0, 0, 0, 0.02);
 }
 
 /* Linhas da tabela */
@@ -33,45 +85,184 @@
   display: table-row;
 }
 
-.message-row > div {
+.message-row>div {
   display: table-cell;
   border: 1px solid #ccc;
   padding: 10px;
   text-align: left;
+  vertical-align: middle;
 }
 
 .message-row:nth-child(even) {
-  background-color: #f9f9f9; /* cor de fundo alternada para linhas pares */
+  background-color: #f9f9f9;
 }
 
 .message-text {
-  color: #000000; /* cor do texto */
+  color: #000000;
 }
 
 .message-action {
-  display: flex !important; /* faz deste cell um flex container */
-  align-items: center !important; /* alinha verticalmente os ícones */
-  justify-content: center !important; /* alinha à esquerda; use center ou space-evenly se preferir */
-  gap: 8px !important; /* espaço fixo entre cada botão */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 4px;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 .action-icon {
-  width: 20px;
-  height: 20px;
-  fill: currentColor; /* Faz com que o SVG herde a cor do elemento pai */
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+  /* Faz com que o SVG herde a cor do elemento pai */
 }
 
 .action-icon:hover {
   cursor: pointer;
-  transform: scale(1.1); /* leve aumento de tamanho ao passar o mouse */
-  transition: transform 0.2s ease; /* animação suave para o aumento de tamanho */
+  transform: scale(1.1);
+  transition: transform 0.2s ease;
 }
 
 .btn-save,
 .btn-cancel,
 .btn-edit,
 .btn-delete {
-  /* padding: 10px 20px; */
-  margin: 0; /* elimina o `margin-left: 10px;` atual */
+  margin: 0;
   padding: 4px;
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border: 1px solid #e6e6e6;
+  border-radius: 6px;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.03);
+  cursor: pointer;
+}
+
+.btn-save+.btn-cancel,
+.btn-edit+.btn-delete {
+  margin-left: 6px;
+}
+
+/* Input when editing inside the table */
+.input-edit {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 0.95rem;
+}
+
+/* Modal styles for showing full message */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  /* top:0; right:0; bottom:0; left:0 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.35);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms ease-in-out;
+  z-index: 9999;
+}
+
+.modal-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal-content {
+  background: #fff;
+  max-width: 90%;
+  width: 600px;
+  max-height: 80vh;
+  overflow: auto;
+  padding: 1.5rem 1.25rem;
+  /* extra top padding so content has room under close button */
+  position: relative;
+  /* required for absolutely positioned close button */
+  transform-origin: center top;
+  border-radius: 8px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  transform: translateY(-8px) scale(0.99);
+  opacity: 0;
+  transition: transform 220ms cubic-bezier(.2, .8, .2, 1), opacity 220ms ease-in-out;
+}
+
+.modal-overlay.open .modal-content {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+}
+
+.modal-close {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  background: transparent;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.modal-message-body {
+  font-size: 0.98rem;
+  color: #222;
+  white-space: pre-wrap;
+  /* keep newlines */
+  word-break: break-word;
+  /* safe wrap for long words */
+  padding-right: 2.5rem;
+  /* avoid content appearing under the close button */
+}
+
+/* Disable text selection globally (prevents mouse selection on main page)
+   but allow selection inside form controls and the modal message so users
+   can still copy text or edit inputs. */
+html,
+body,
+.messages-grid,
+.message-row,
+.message-text,
+.messages-header,
+.message-row>div,
+.messages-header>div {
+  -webkit-user-select: none;
+  /* Safari/Chrome */
+  -moz-user-select: none;
+  /* Firefox */
+  -ms-user-select: none;
+  /* IE10+ */
+  user-select: none;
+  /* Standard */
+  -webkit-touch-callout: none;
+  /* iOS long press */
+}
+
+/* Allow selection where it matters: inputs, textareas, selects, buttons,
+   modal message body (so users can copy full messages) and any explicit
+   editable inputs inside the table. */
+input,
+textarea,
+select,
+button,
+.input-edit,
+.modal-message-body {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
+
+/* Keep pointer cursor for interactive icons/buttons */
+.action-icon,
+.btn-save,
+.btn-cancel,
+.btn-edit,
+.btn-delete {
+  cursor: pointer;
 }
