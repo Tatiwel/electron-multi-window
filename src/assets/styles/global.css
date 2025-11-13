@@ -25,7 +25,8 @@ body {
   border-radius: 8px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   width: 100%;
-  max-width: 400px;
+  /* give main container a little more horizontal room so messages can show more text */
+  max-width: 480px;
   text-align: center;
 }
 
