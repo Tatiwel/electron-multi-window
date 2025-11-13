@@ -7,9 +7,6 @@ import CancelIcon from '../assets/icons/cancel-icon.svg';
 import '../assets/styles/global.css';
 import '../assets/styles/app.css';
 
-// Note: electron types and preload expose `window.ipcRenderer` elsewhere in the
-// project; no custom window augmentation is required here.
-
 
 const App: React.FC = () => {
   const [inputValue, setInputValue] = useState('');
