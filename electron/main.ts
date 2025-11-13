@@ -38,7 +38,13 @@ function createWindow() {
   });
 
   if (VITE_DEV_SERVER_URL) {
-    mainWindow.loadURL(VITE_DEV_SERVER_URL);
+    const devEntryUrl = new URL(
+      'html/index.html',
+      VITE_DEV_SERVER_URL.endsWith('/')
+        ? VITE_DEV_SERVER_URL
+        : `${VITE_DEV_SERVER_URL}/`
+    ).toString();
+    mainWindow.loadURL(devEntryUrl);
   } else {
     mainWindow.loadFile(path.join(RENDERER_DIST, 'index.html'));
   }

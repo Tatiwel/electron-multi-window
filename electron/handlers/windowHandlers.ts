@@ -29,7 +29,7 @@ const buildNewWindowUrl = (
     const normalized = devServerUrl.endsWith('/')
       ? devServerUrl
       : `${devServerUrl}/`;
-    return new URL('newWindow.html', normalized).toString();
+    return new URL('html/newWindow.html', normalized).toString();
   }
 
   return path.join(rendererDist, 'newWindow.html');
