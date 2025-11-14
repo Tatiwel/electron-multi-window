@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom/client';
+import { type EditPayload, windowService } from '../services';
 import '../assets/styles/newWindow.css';
 
 const NewWindow: React.FC = () => {
@@ -7,20 +8,20 @@ const NewWindow: React.FC = () => {
 
   useEffect(() => {
     // inicializa com o valor passado ao abrir
-    const initHandler = (_e: Electron.IpcRendererEvent, value: string) => {
+    const initHandler = ({ value }: EditPayload) => {
       setUserMessage(value);
     };
     // sincroniza atualizações subsequentes
-    const updateHandler = (_e: Electron.IpcRendererEvent, value: string) => {
+    const updateHandler = ({ value }: EditPayload) => {
       setUserMessage(value);
     };
 
-    window.ipcRenderer.on('init-value', initHandler);
-    window.ipcRenderer.on('update-value', updateHandler);
+    const unsubscribeInit = windowService.onInitValue(initHandler);
+    const unsubscribeUpdate = windowService.onUpdateValue(updateHandler);
 
     return () => {
-      window.ipcRenderer.off('init-value', initHandler);
-      window.ipcRenderer.off('update-value', updateHandler);
+      unsubscribeInit();
+      unsubscribeUpdate();
     };
   }, []);
 

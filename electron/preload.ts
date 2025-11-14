@@ -1,23 +1,31 @@
-import { ipcRenderer, contextBridge } from 'electron';
+import { contextBridge, ipcRenderer } from 'electron';
 
-// Expondo APIs para o Renderer process
-contextBridge.exposeInMainWorld('ipcRenderer', {
-  on(...args: Parameters<typeof ipcRenderer.on>) {
-    const [channel, listener] = args;
-    return ipcRenderer.on(channel, (event, ...args) =>
-      listener(event, ...args)
-    );
-  },
-  off(...args: Parameters<typeof ipcRenderer.off>) {
-    const [channel, ...omit] = args;
-    return ipcRenderer.off(channel, ...omit);
-  },
-  send(...args: Parameters<typeof ipcRenderer.send>) {
-    const [channel, ...omit] = args;
-    return ipcRenderer.send(channel, ...omit);
-  },
-  invoke(...args: Parameters<typeof ipcRenderer.invoke>) {
-    const [channel, ...omit] = args;
-    return ipcRenderer.invoke(channel, ...omit);
-  },
+type EditPayload = { id: string; value: string };
+type ClosePayload = { id: string };
+
+const exposeListener = <T>(channel: string, callback: (payload: T) => void) => {
+  const listener = (_event: Electron.IpcRendererEvent, payload: T) => {
+    callback(payload);
+  };
+
+  ipcRenderer.on(channel, listener);
+
+  return () => {
+    ipcRenderer.removeListener(channel, listener);
+  };
+};
+
+contextBridge.exposeInMainWorld('electronAPI', {
+  openNewWindow: (payload: EditPayload) =>
+    ipcRenderer.send('open-new-window', payload),
+  updateValue: (payload: EditPayload) =>
+    ipcRenderer.send('update-value', payload),
+  closeWindow: (payload: ClosePayload) =>
+    ipcRenderer.send('close-window', payload),
+  onInitValue: (callback: (payload: EditPayload) => void) =>
+    exposeListener<EditPayload>('init-value', callback),
+  onUpdateValue: (callback: (payload: EditPayload) => void) =>
+    exposeListener<EditPayload>('update-value', callback),
+  onEditWindowClosed: (callback: (payload: ClosePayload) => void) =>
+    exposeListener<ClosePayload>('edit-window-closed', callback),
 });

@@ -19,8 +19,8 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: {
-        main: path.resolve(__dirname, 'index.html'),
-        newWindow: path.resolve(__dirname, 'newWindow.html'),
+        main: path.resolve(__dirname, 'html/index.html'),
+        newWindow: path.resolve(__dirname, 'html/newWindow.html'),
       },
     },
   },

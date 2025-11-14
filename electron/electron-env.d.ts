@@ -23,5 +23,18 @@ declare namespace NodeJS {
 
 // Used in Renderer process, expose in `preload.ts`
 interface Window {
-  ipcRenderer: import('electron').IpcRenderer
+  electronAPI: {
+    openNewWindow: (payload: { id: string; value: string }) => void
+    updateValue: (payload: { id: string; value: string }) => void
+    closeWindow: (payload: { id: string }) => void
+    onInitValue: (
+      callback: (payload: { id: string; value: string }) => void
+    ) => () => void
+    onUpdateValue: (
+      callback: (payload: { id: string; value: string }) => void
+    ) => () => void
+    onEditWindowClosed: (
+      callback: (payload: { id: string }) => void
+    ) => () => void
+  }
 }
