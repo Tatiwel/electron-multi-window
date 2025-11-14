@@ -22,21 +22,16 @@
 
 /* Estilo para a caixa de mensagem */
 .message-box {
-  padding: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background-color: #f9f9f9;
-  font-size: 1rem;
-  color: #555;
-}
-
-/* src/styles/newWindow.css */
-
-.message-box {
-  padding: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background-color: #007bff; /* Fundo azul */
-  font-size: 1rem;
-  color: #fff; /* Texto branco */
+  padding: 1.25rem;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+  background-color: #0d6efd;
+  color: #fff;
+  letter-spacing: 0.01em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  word-break: break-word;
+  line-height: 1.45;
+  max-width: 100%;
+  text-align: center;
 }
