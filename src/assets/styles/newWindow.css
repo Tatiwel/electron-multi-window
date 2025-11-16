@@ -35,3 +35,77 @@
   max-width: 100%;
   text-align: center;
 }
+
+.message-box.editing {
+  background-color: #fff;
+  color: #0d0d0d;
+}
+
+.message-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid #0d6efd;
+  border-radius: 6px;
+  font-size: 1rem;
+  line-height: 1.4;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.message-input:focus {
+  border-color: #0a58ca;
+}
+
+.newWindow-actions {
+  margin-top: 1.25rem;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 6px;
+  background: #f1f3f5;
+  cursor: pointer;
+  transition: transform 0.1s ease, background 0.2s ease, opacity 0.2s ease;
+}
+
+.action-button img {
+  width: 20px;
+  height: 20px;
+}
+
+.action-button.edit {
+  background: #0d6efd;
+}
+
+.action-button.edit img {
+  filter: invert(1);
+}
+
+.action-button.save {
+  background: #0d6efd;
+}
+
+.action-button.save img {
+  filter: invert(1);
+}
+
+.action-button.cancel {
+  background: #e9ecef;
+}
+
+.action-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.action-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

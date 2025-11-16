@@ -22,10 +22,39 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.send('update-value', payload),
   closeWindow: (payload: ClosePayload) =>
     ipcRenderer.send('close-window', payload),
+  requestStartEditing: (payload: EditPayload) =>
+    ipcRenderer.send('child-request-edit', payload),
+  requestSyncValue: (payload: EditPayload) =>
+    ipcRenderer.send('child-sync-edit-value', payload),
+  requestSaveEditing: (payload: EditPayload) =>
+    ipcRenderer.send('child-save-edit', payload),
+  requestCancelEditing: (payload: EditPayload) =>
+    ipcRenderer.send('child-cancel-edit', payload),
+  notifyEditingState: (payload: {
+    id: string
+    value: string
+    isEditing: boolean
+  }) => ipcRenderer.send('notify-editing-state', payload),
   onInitValue: (callback: (payload: EditPayload) => void) =>
     exposeListener<EditPayload>('init-value', callback),
   onUpdateValue: (callback: (payload: EditPayload) => void) =>
     exposeListener<EditPayload>('update-value', callback),
   onEditWindowClosed: (callback: (payload: ClosePayload) => void) =>
     exposeListener<ClosePayload>('edit-window-closed', callback),
+  onEditingStateChange: (
+    callback: (payload: {
+      id: string
+      value: string
+      isEditing: boolean
+    }) => void
+  ) =>
+    exposeListener('editing-state-changed', callback),
+  onStartEditingRequest: (callback: (payload: EditPayload) => void) =>
+    exposeListener<EditPayload>('child-request-edit', callback),
+  onSyncValueRequest: (callback: (payload: EditPayload) => void) =>
+    exposeListener<EditPayload>('child-sync-edit-value', callback),
+  onSaveEditingRequest: (callback: (payload: EditPayload) => void) =>
+    exposeListener<EditPayload>('child-save-edit', callback),
+  onCancelEditingRequest: (callback: (payload: EditPayload) => void) =>
+    exposeListener<EditPayload>('child-cancel-edit', callback),
 });

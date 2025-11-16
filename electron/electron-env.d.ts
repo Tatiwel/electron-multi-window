@@ -27,6 +27,15 @@ interface Window {
     openNewWindow: (payload: { id: string; value: string }) => void
     updateValue: (payload: { id: string; value: string }) => void
     closeWindow: (payload: { id: string }) => void
+    requestStartEditing: (payload: { id: string; value: string }) => void
+    requestSyncValue: (payload: { id: string; value: string }) => void
+    requestSaveEditing: (payload: { id: string; value: string }) => void
+    requestCancelEditing: (payload: { id: string; value: string }) => void
+    notifyEditingState: (payload: {
+      id: string
+      value: string
+      isEditing: boolean
+    }) => void
     onInitValue: (
       callback: (payload: { id: string; value: string }) => void
     ) => () => void
@@ -35,6 +44,25 @@ interface Window {
     ) => () => void
     onEditWindowClosed: (
       callback: (payload: { id: string }) => void
+    ) => () => void
+    onEditingStateChange: (
+      callback: (payload: {
+        id: string
+        value: string
+        isEditing: boolean
+      }) => void
+    ) => () => void
+    onStartEditingRequest: (
+      callback: (payload: { id: string; value: string }) => void
+    ) => () => void
+    onSyncValueRequest: (
+      callback: (payload: { id: string; value: string }) => void
+    ) => () => void
+    onSaveEditingRequest: (
+      callback: (payload: { id: string; value: string }) => void
+    ) => () => void
+    onCancelEditingRequest: (
+      callback: (payload: { id: string; value: string }) => void
     ) => () => void
   }
 }

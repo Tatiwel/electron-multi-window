@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import MessageItem from '../components/MessageItem/MessageItem';
 import { useMessageManagement, useWindowManagement } from '../hooks';
+import { windowService } from '../services';
 import '../assets/styles/global.css';
 import '../assets/styles/app.css';
 
@@ -17,9 +18,13 @@ const App: React.FC = () => {
   const {
     editingValues,
     startEditing,
+    startEditingFromRemote,
     syncEditing,
+    syncEditingFromRemote,
     finishEditing,
+    finishEditingFromRemote,
     cancelEditing,
+    cancelEditingFromRemote,
     closeEditingWindow,
   } = useWindowManagement();
   const [modalOpen, setModalOpen] = useState(false);
@@ -44,7 +49,7 @@ const App: React.FC = () => {
       return;
     }
     updateMessage(id, editedValue);
-    finishEditing(id);
+    finishEditing(id, editedValue);
   };
 
   // Cancela edição de um slot específico
@@ -79,6 +84,46 @@ const App: React.FC = () => {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [modalOpen]);
+
+  const messagesRef = useRef(messages);
+
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
+
+  useEffect(() => {
+    const unsubscribeStart = windowService.onStartEditingRequest(({ id, value }) => {
+      startEditingFromRemote(id, value);
+    });
+
+    const unsubscribeSync = windowService.onSyncValueRequest(({ id, value }) => {
+      syncEditingFromRemote(id, value);
+    });
+
+    const unsubscribeSave = windowService.onSaveEditingRequest(({ id, value }) => {
+      updateMessage(id, value);
+      finishEditingFromRemote(id, value);
+    });
+
+    const unsubscribeCancel = windowService.onCancelEditingRequest(({ id, value }) => {
+      const message = messagesRef.current.find((msg) => msg.id === id);
+      const originalValue = message?.text ?? value ?? '';
+      cancelEditingFromRemote(id, originalValue);
+    });
+
+    return () => {
+      unsubscribeStart();
+      unsubscribeSync();
+      unsubscribeSave();
+      unsubscribeCancel();
+    };
+  }, [
+    cancelEditingFromRemote,
+    finishEditingFromRemote,
+    startEditingFromRemote,
+    syncEditingFromRemote,
+    updateMessage,
+  ]);
 
   return (
     <div className="app-container">

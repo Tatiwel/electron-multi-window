@@ -10,6 +10,12 @@ interface ClosePayload {
   id: string;
 }
 
+interface EditingStatePayload {
+  id: string;
+  value: string;
+  isEditing: boolean;
+}
+
 interface RegisterWindowHandlersOptions {
   preloadPath: string;
   devServerUrl?: string;
@@ -101,6 +107,32 @@ export const registerWindowHandlers = (
     const { id } = payload;
     const childWindow = windows.get(id);
     childWindow?.close();
+  });
+
+  ipcMain.on('child-request-edit', (_event, payload: EditPayload) => {
+    const mainWindow = getMainWindow();
+    mainWindow?.webContents.send('child-request-edit', payload);
+  });
+
+  ipcMain.on('child-sync-edit-value', (_event, payload: EditPayload) => {
+    const mainWindow = getMainWindow();
+    mainWindow?.webContents.send('child-sync-edit-value', payload);
+  });
+
+  ipcMain.on('child-save-edit', (_event, payload: EditPayload) => {
+    const mainWindow = getMainWindow();
+    mainWindow?.webContents.send('child-save-edit', payload);
+  });
+
+  ipcMain.on('child-cancel-edit', (_event, payload: EditPayload) => {
+    const mainWindow = getMainWindow();
+    mainWindow?.webContents.send('child-cancel-edit', payload);
+  });
+
+  ipcMain.on('notify-editing-state', (_event, payload: EditingStatePayload) => {
+    const { id } = payload;
+    const childWindow = windows.get(id);
+    childWindow?.webContents.send('editing-state-changed', payload);
   });
 };
 
