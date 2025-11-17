@@ -47,11 +47,14 @@
 }
 
 .message-box.editing {
-  background-color: #fff;
+  background: #f8fbff;
   color: #0d0d0d;
-  overflow: visible;
-  max-height: none;
-  scrollbar-color: auto;
+  border-color: rgba(13, 110, 253, 0.35);
+  overflow: hidden;
+  padding: 0;
+  max-height: min(55vh, 260px);
+  display: flex;
+  flex-direction: column;
 }
 
 .message-box::-webkit-scrollbar {
@@ -73,19 +76,43 @@
   background: rgba(255, 255, 255, 0.75);
 }
 
-.message-input {
+.message-editor {
+  flex: 1 1 auto;
   width: 100%;
-  padding: 0.75rem 1rem;
-  border: 2px solid #0d6efd;
-  border-radius: 6px;
-  font-size: 1rem;
-  line-height: 1.4;
+  padding: 1.25rem;
+  border: none;
+  border-radius: inherit;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
+  resize: none;
   outline: none;
-  transition: border-color 0.2s ease;
+  box-sizing: border-box;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(13, 110, 253, 0.45) rgba(228, 238, 255, 0.8);
+  max-height: min(55vh, 260px);
 }
 
-.message-input:focus {
-  border-color: #0a58ca;
+.message-editor::-webkit-scrollbar {
+  width: 8px;
+}
+
+.message-editor::-webkit-scrollbar-track {
+  background: rgba(228, 238, 255, 0.9);
+  border-radius: 999px;
+}
+
+.message-editor::-webkit-scrollbar-thumb {
+  background: rgba(13, 110, 253, 0.45);
+  border-radius: 999px;
+  border: 2px solid rgba(228, 238, 255, 0.9);
+}
+
+.message-editor::-webkit-scrollbar-thumb:hover {
+  background: rgba(13, 110, 253, 0.65);
 }
 
 .newWindow-actions {

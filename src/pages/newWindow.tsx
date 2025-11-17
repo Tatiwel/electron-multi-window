@@ -16,10 +16,12 @@ const NewWindow: React.FC = () => {
   const [draftMessage, setDraftMessage] = useState('');
   const [initialMessage, setInitialMessage] = useState('');
   const [isEditing, setIsEditing] = useState(false);
+  const [lockedHeight, setLockedHeight] = useState<number | null>(null);
 
   const messageIdRef = useRef<string | null>(null);
   const isEditingRef = useRef(false);
   const messageBoxRef = useRef<HTMLDivElement | null>(null);
+  const editorRef = useRef<HTMLTextAreaElement | null>(null);
 
   useEffect(() => {
     const initHandler = ({ id, value }: EditPayload) => {
@@ -53,6 +55,17 @@ const NewWindow: React.FC = () => {
       }
       messageIdRef.current = id;
       isEditingRef.current = isEditing;
+      if (isEditing) {
+        setLockedHeight((prev) => {
+          if (prev !== null) {
+            return prev;
+          }
+          const container = messageBoxRef.current;
+          return container ? container.clientHeight : null;
+        });
+      } else {
+        setLockedHeight(null);
+      }
       setMessageId(id);
       setIsEditing(isEditing);
       setUserMessage(value);
@@ -80,6 +93,18 @@ const NewWindow: React.FC = () => {
   }, [messageId]);
 
   useEffect(() => {
+    if (!isEditing) {
+      return;
+    }
+    const editor = editorRef.current;
+    if (editor) {
+      window.requestAnimationFrame(() => {
+        editor.scrollTop = 0;
+      });
+    }
+  }, [isEditing]);
+
+  useEffect(() => {
     if (isEditing) {
       return;
     }
@@ -96,6 +121,8 @@ const NewWindow: React.FC = () => {
     if (!messageIdRef.current) {
       return;
     }
+    const container = messageBoxRef.current;
+    setLockedHeight(container ? container.clientHeight : null);
     const currentValue = userMessage;
     setIsEditing(true);
     isEditingRef.current = true;
@@ -107,7 +134,9 @@ const NewWindow: React.FC = () => {
     });
   };
 
-  const handleDraftChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleDraftChange = (
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     if (!messageIdRef.current) {
       return;
     }
@@ -142,13 +171,14 @@ const NewWindow: React.FC = () => {
   const renderContent = () => {
     if (isEditing) {
       return (
-        <input
-          className="message-input"
-          type="text"
+        <textarea
+          ref={editorRef}
+          className="message-editor"
           value={draftMessage}
           onChange={handleDraftChange}
           placeholder="Type your message"
           autoFocus
+          style={lockedHeight ? { minHeight: `${lockedHeight}px` } : undefined}
         />
       );
     }
@@ -159,7 +189,11 @@ const NewWindow: React.FC = () => {
   return (
     <div className="newWindow-container">
       <h1>User Message</h1>
-      <div ref={messageBoxRef} className={`message-box ${isEditing ? 'editing' : ''}`}>
+      <div
+        ref={messageBoxRef}
+        className={`message-box ${isEditing ? 'editing' : ''}`}
+        style={lockedHeight ? { minHeight: `${lockedHeight}px` } : undefined}
+      >
         {renderContent()}
       </div>
       <div className="newWindow-actions">
