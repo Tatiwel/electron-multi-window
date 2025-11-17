@@ -19,6 +19,7 @@ const NewWindow: React.FC = () => {
 
   const messageIdRef = useRef<string | null>(null);
   const isEditingRef = useRef(false);
+  const messageBoxRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const initHandler = ({ id, value }: EditPayload) => {
@@ -77,6 +78,19 @@ const NewWindow: React.FC = () => {
   useEffect(() => {
     messageIdRef.current = messageId;
   }, [messageId]);
+
+  useEffect(() => {
+    if (isEditing) {
+      return;
+    }
+
+    const container = messageBoxRef.current;
+    if (container) {
+      container.scrollTop = 0;
+    }
+
+    window.scrollTo(0, 0);
+  }, [userMessage, messageId, isEditing]);
 
   const handleStartEditing = () => {
     if (!messageIdRef.current) {
@@ -145,7 +159,7 @@ const NewWindow: React.FC = () => {
   return (
     <div className="newWindow-container">
       <h1>User Message</h1>
-      <div className={`message-box ${isEditing ? 'editing' : ''}`}>
+      <div ref={messageBoxRef} className={`message-box ${isEditing ? 'editing' : ''}`}>
         {renderContent()}
       </div>
       <div className="newWindow-actions">
