@@ -39,11 +39,12 @@
   word-break: break-word;
   line-height: 1.45;
   max-width: 100%;
-  text-align: left;
+  text-align: center;
   overflow-y: auto;
   max-height: min(55vh, 260px);
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.45) rgba(13, 110, 253, 0.35);
+  font-size: 1.1rem;
 }
 
 .message-box.editing {
