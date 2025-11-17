@@ -201,30 +201,30 @@ const NewWindow: React.FC = () => {
           <>
             <button
               type="button"
-              className="action-button save"
+              className="btn-icon btn-save"
               onClick={handleSave}
               aria-label="Salvar mensagem"
             >
-              <img src={SaveIcon} alt="" />
+              <img src={SaveIcon} alt="" className="action-icon" />
             </button>
             <button
               type="button"
-              className="action-button cancel"
+              className="btn-icon btn-cancel"
               onClick={handleCancel}
               aria-label="Voltar sem salvar"
             >
-              <img src={CancelIcon} alt="" />
+              <img src={CancelIcon} alt="" className="action-icon" />
             </button>
           </>
         ) : (
           <button
             type="button"
-            className="action-button edit"
+            className="btn-icon btn-edit"
             onClick={handleStartEditing}
             aria-label="Editar mensagem"
             disabled={!messageId}
           >
-            <img src={EditIcon} alt="" />
+            <img src={EditIcon} alt="" className="action-icon" />
           </button>
         )}
       </div>

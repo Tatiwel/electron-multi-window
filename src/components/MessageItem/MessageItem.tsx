@@ -43,10 +43,10 @@ const MessageItem: React.FC<MessageItemProps> = ({
             />
           </div>
           <div className="message-action">
-            <button onClick={onSave} className="btn-save">
+            <button onClick={onSave} className="btn-icon btn-save">
               <img src={SaveIcon} alt="Save" className="action-icon" />
             </button>
-            <button onClick={onCancel} className="btn-cancel">
+            <button onClick={onCancel} className="btn-icon btn-cancel">
               <img src={CancelIcon} alt="Cancel" className="action-icon" />
             </button>
           </div>
@@ -72,10 +72,10 @@ const MessageItem: React.FC<MessageItemProps> = ({
             {message.text}
           </div>
           <div className="message-action">
-            <button onClick={onEdit} className="btn-edit">
+            <button onClick={onEdit} className="btn-icon btn-edit">
               <img src={EditIcon} alt="Edit" className="action-icon" />
             </button>
-            <button onClick={onDelete} className="btn-delete">
+            <button onClick={onDelete} className="btn-icon btn-delete">
               <img src={TrashIcon} alt="Delete" className="action-icon" />
             </button>
           </div>

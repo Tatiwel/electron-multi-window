@@ -18,6 +18,44 @@ body {
   height: 100vh;
 }
 
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 4px;
+  margin: 0;
+  background: #fff;
+  border: 1px solid #e6e6e6;
+  border-radius: 6px;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.03);
+  cursor: pointer;
+  transition: transform 0.1s ease, background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
+}
+
+.btn-icon img {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
+.btn-icon:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: #d0d5dd;
+}
+
+.btn-icon:active:not(:disabled) {
+  transform: translateY(0);
+  background-color: #f1f3f5;
+}
+
+.btn-icon:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
 /* Container centralizado */
 .app-container {
   background-color: #fff;
@@ -84,7 +122,8 @@ h1 {
 .btn-submit {
   width: 100%;
   padding: 0.75rem;
-  background-color: #007bff; /* Cor azul padrão */
+  background-color: #007bff;
+  /* Cor azul padrão */
   color: #fff;
   border: none;
   border-radius: 4px;
@@ -94,13 +133,19 @@ h1 {
 }
 
 .btn-submit:hover {
-  background-color: #0056b3; /* Azul mais escuro ao passar o mouse */
-  transform: scale(1.02); /* Leve aumento de tamanho ao passar o mouse */
-  transition: transform 0.2s ease; /* Animação suave para o aumento de tamanho */
+  background-color: #0056b3;
+  /* Azul mais escuro ao passar o mouse */
+  transform: scale(1.02);
+  /* Leve aumento de tamanho ao passar o mouse */
+  transition: transform 0.2s ease;
+  /* Animação suave para o aumento de tamanho */
 }
 
 .btn-submit:active {
-  background-color: #197f00; /* Azul ainda mais escuro ao clicar */
-  transform: scale(0.98); /* Leve redução de tamanho ao clicar */
-  transition: transform 0.1s ease; /* Animação suave para a redução de tamanho */
+  background-color: #197f00;
+  /* Azul ainda mais escuro ao clicar */
+  transform: scale(0.98);
+  /* Leve redução de tamanho ao clicar */
+  transition: transform 0.1s ease;
+  /* Animação suave para a redução de tamanho */
 }
