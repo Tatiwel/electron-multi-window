@@ -31,6 +31,7 @@ interface Window {
     requestSyncValue: (payload: { id: string; value: string }) => void
     requestSaveEditing: (payload: { id: string; value: string }) => void
     requestCancelEditing: (payload: { id: string; value: string }) => void
+    requestCurrentValue: () => void
     notifyEditingState: (payload: {
       id: string
       value: string

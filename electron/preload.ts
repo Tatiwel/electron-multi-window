@@ -30,6 +30,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.send('child-save-edit', payload),
   requestCancelEditing: (payload: EditPayload) =>
     ipcRenderer.send('child-cancel-edit', payload),
+  requestCurrentValue: () => ipcRenderer.send('child-request-current-value'),
   notifyEditingState: (payload: {
     id: string
     value: string

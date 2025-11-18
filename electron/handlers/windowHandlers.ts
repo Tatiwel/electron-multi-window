@@ -25,6 +25,7 @@ interface RegisterWindowHandlersOptions {
 }
 
 const windows = new Map<string, BrowserWindow>();
+const windowValues = new Map<string, string>();
 let registered = false;
 
 const buildNewWindowUrl = (
@@ -62,6 +63,7 @@ export const registerWindowHandlers = (
     const existingWindow = windows.get(id);
     if (existingWindow) {
       existingWindow.focus();
+      windowValues.set(id, payload.value);
       existingWindow.webContents.send('update-value', payload);
       return;
     }
@@ -77,6 +79,7 @@ export const registerWindowHandlers = (
     });
 
     windows.set(id, childWindow);
+    windowValues.set(id, payload.value);
 
     const urlOrPath = buildNewWindowUrl(devServerUrl, rendererDist);
 
@@ -90,6 +93,7 @@ export const registerWindowHandlers = (
 
     childWindow.on('closed', () => {
       windows.delete(id);
+      windowValues.delete(id);
       maybeNotifyMainWindow({ id });
       options.onChildWindowClosed?.(id);
     });
@@ -97,10 +101,28 @@ export const registerWindowHandlers = (
 
   ipcMain.on('update-value', (_event, payload: EditPayload) => {
     const { id } = payload;
+    windowValues.set(id, payload.value);
     const childWindow = windows.get(id);
     if (childWindow) {
       childWindow.webContents.send('update-value', payload);
     }
+  });
+
+  ipcMain.on('child-request-current-value', (event) => {
+    const sender = event.sender;
+    let targetId: string | null = null;
+    windows.forEach((win, id) => {
+      if (win.webContents === sender) {
+        targetId = id;
+      }
+    });
+
+    if (!targetId) {
+      return;
+    }
+
+    const value = windowValues.get(targetId) ?? '';
+    sender.send('init-value', { id: targetId, value });
   });
 
   ipcMain.on('close-window', (_event, payload: ClosePayload) => {
@@ -111,27 +133,32 @@ export const registerWindowHandlers = (
 
   ipcMain.on('child-request-edit', (_event, payload: EditPayload) => {
     const mainWindow = getMainWindow();
+    windowValues.set(payload.id, payload.value);
     mainWindow?.webContents.send('child-request-edit', payload);
   });
 
   ipcMain.on('child-sync-edit-value', (_event, payload: EditPayload) => {
     const mainWindow = getMainWindow();
+    windowValues.set(payload.id, payload.value);
     mainWindow?.webContents.send('child-sync-edit-value', payload);
   });
 
   ipcMain.on('child-save-edit', (_event, payload: EditPayload) => {
     const mainWindow = getMainWindow();
+    windowValues.set(payload.id, payload.value);
     mainWindow?.webContents.send('child-save-edit', payload);
   });
 
   ipcMain.on('child-cancel-edit', (_event, payload: EditPayload) => {
     const mainWindow = getMainWindow();
+    windowValues.set(payload.id, payload.value);
     mainWindow?.webContents.send('child-cancel-edit', payload);
   });
 
   ipcMain.on('notify-editing-state', (_event, payload: EditingStatePayload) => {
     const { id } = payload;
     const childWindow = windows.get(id);
+    windowValues.set(id, payload.value);
     childWindow?.webContents.send('editing-state-changed', payload);
   });
 };
@@ -139,4 +166,5 @@ export const registerWindowHandlers = (
 export const closeAllChildWindows = () => {
   windows.forEach((win) => win.close());
   windows.clear();
+  windowValues.clear();
 };

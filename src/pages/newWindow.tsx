@@ -77,6 +77,8 @@ const NewWindow: React.FC = () => {
     const unsubscribeUpdate = windowService.onUpdateValue(updateHandler);
     const unsubscribeEditingState = windowService.onEditingStateChange(editingStateHandler);
 
+    windowService.requestCurrentValue();
+
     return () => {
       unsubscribeInit();
       unsubscribeUpdate();

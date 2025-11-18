@@ -38,6 +38,9 @@ export const windowService = {
   requestCancelEditing(payload: EditPayload) {
     ensureElectronAPI().requestCancelEditing(payload);
   },
+  requestCurrentValue() {
+    ensureElectronAPI().requestCurrentValue();
+  },
   notifyEditingState(payload: EditingStatePayload) {
     ensureElectronAPI().notifyEditingState(payload);
   },
