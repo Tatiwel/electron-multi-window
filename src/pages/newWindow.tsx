@@ -205,7 +205,7 @@ const NewWindow: React.FC = () => {
               type="button"
               className="btn-icon btn-save"
               onClick={handleSave}
-              aria-label="Salvar mensagem"
+              aria-label="Save message"
             >
               <img src={SaveIcon} alt="" className="action-icon" />
             </button>
@@ -213,7 +213,7 @@ const NewWindow: React.FC = () => {
               type="button"
               className="btn-icon btn-cancel"
               onClick={handleCancel}
-              aria-label="Voltar sem salvar"
+              aria-label="Cancel and revert changes"
             >
               <img src={CancelIcon} alt="" className="action-icon" />
             </button>
@@ -223,7 +223,7 @@ const NewWindow: React.FC = () => {
             type="button"
             className="btn-icon btn-edit"
             onClick={handleStartEditing}
-            aria-label="Editar mensagem"
+            aria-label="Edit message"
             disabled={!messageId}
           >
             <img src={EditIcon} alt="" className="action-icon" />

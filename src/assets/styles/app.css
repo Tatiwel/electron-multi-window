@@ -121,11 +121,6 @@
   transition: transform 0.2s ease;
 }
 
-.btn-save+.btn-cancel,
-.btn-edit+.btn-delete {
-  margin-left: 6px;
-}
-
 /* Input when editing inside the table */
 .input-edit {
   width: 100%;

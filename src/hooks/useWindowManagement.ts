@@ -66,24 +66,7 @@ export const useWindowManagement = () => {
     [dispatchEditingState, removeEditingEntry]
   );
 
-  const finishEditingFromRemote = useCallback(
-    (id: string, finalValue: string) => {
-      removeEditingEntry(id);
-      dispatchEditingState(id, false, finalValue);
-    },
-    [dispatchEditingState, removeEditingEntry]
-  );
-
   const cancelEditing = useCallback(
-    (id: string, originalValue: string) => {
-      windowService.syncEditValue({ id, value: originalValue });
-      removeEditingEntry(id);
-      dispatchEditingState(id, false, originalValue);
-    },
-    [dispatchEditingState, removeEditingEntry]
-  );
-
-  const cancelEditingFromRemote = useCallback(
     (id: string, originalValue: string) => {
       windowService.syncEditValue({ id, value: originalValue });
       removeEditingEntry(id);
@@ -96,6 +79,9 @@ export const useWindowManagement = () => {
     windowService.closeEditWindow({ id });
     removeEditingEntry(id);
   }, [removeEditingEntry]);
+
+  const finishEditingFromRemote = finishEditing;
+  const cancelEditingFromRemote = cancelEditing;
 
   return {
     editingValues,

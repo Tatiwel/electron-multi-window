@@ -22,48 +22,44 @@ declare namespace NodeJS {
 }
 
 // Used in Renderer process, expose in `preload.ts`
+type RendererEditPayload = { id: string; value: string };
+type RendererClosePayload = { id: string };
+type RendererEditingStatePayload = {
+  id: string;
+  value: string;
+  isEditing: boolean;
+};
+
 interface Window {
   electronAPI: {
-    openNewWindow: (payload: { id: string; value: string }) => void
-    updateValue: (payload: { id: string; value: string }) => void
-    closeWindow: (payload: { id: string }) => void
-    requestStartEditing: (payload: { id: string; value: string }) => void
-    requestSyncValue: (payload: { id: string; value: string }) => void
-    requestSaveEditing: (payload: { id: string; value: string }) => void
-    requestCancelEditing: (payload: { id: string; value: string }) => void
+    openNewWindow: (payload: RendererEditPayload) => void
+    updateValue: (payload: RendererEditPayload) => void
+    closeWindow: (payload: RendererClosePayload) => void
+    requestStartEditing: (payload: RendererEditPayload) => void
+    requestSyncValue: (payload: RendererEditPayload) => void
+    requestSaveEditing: (payload: RendererEditPayload) => void
+    requestCancelEditing: (payload: RendererEditPayload) => void
     requestCurrentValue: () => void
-    notifyEditingState: (payload: {
-      id: string
-      value: string
-      isEditing: boolean
-    }) => void
-    onInitValue: (
-      callback: (payload: { id: string; value: string }) => void
-    ) => () => void
-    onUpdateValue: (
-      callback: (payload: { id: string; value: string }) => void
-    ) => () => void
+    notifyEditingState: (payload: RendererEditingStatePayload) => void
+    onInitValue: (callback: (payload: RendererEditPayload) => void) => () => void
+    onUpdateValue: (callback: (payload: RendererEditPayload) => void) => () => void
     onEditWindowClosed: (
-      callback: (payload: { id: string }) => void
+      callback: (payload: RendererClosePayload) => void
     ) => () => void
     onEditingStateChange: (
-      callback: (payload: {
-        id: string
-        value: string
-        isEditing: boolean
-      }) => void
+      callback: (payload: RendererEditingStatePayload) => void
     ) => () => void
     onStartEditingRequest: (
-      callback: (payload: { id: string; value: string }) => void
+      callback: (payload: RendererEditPayload) => void
     ) => () => void
     onSyncValueRequest: (
-      callback: (payload: { id: string; value: string }) => void
+      callback: (payload: RendererEditPayload) => void
     ) => () => void
     onSaveEditingRequest: (
-      callback: (payload: { id: string; value: string }) => void
+      callback: (payload: RendererEditPayload) => void
     ) => () => void
     onCancelEditingRequest: (
-      callback: (payload: { id: string; value: string }) => void
+      callback: (payload: RendererEditPayload) => void
     ) => () => void
   }
 }

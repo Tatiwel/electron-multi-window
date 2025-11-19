@@ -48,6 +48,5 @@ export const useMessageManagement = () => {
     handleCreateMessage,
     updateMessage,
     removeMessage,
-    setMessages,
   };
 };

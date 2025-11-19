@@ -57,6 +57,14 @@ export const registerWindowHandlers = (
     mainWindow?.webContents.send('edit-window-closed', payload);
   };
 
+  const forwardToMainWindow = (channel: string) => {
+    ipcMain.on(channel, (_event, payload: EditPayload) => {
+      const mainWindow = getMainWindow();
+      windowValues.set(payload.id, payload.value);
+      mainWindow?.webContents.send(channel, payload);
+    });
+  };
+
   ipcMain.on('open-new-window', async (_event, payload: EditPayload) => {
     const { id } = payload;
 
@@ -111,11 +119,12 @@ export const registerWindowHandlers = (
   ipcMain.on('child-request-current-value', (event) => {
     const sender = event.sender;
     let targetId: string | null = null;
-    windows.forEach((win, id) => {
+    for (const [id, win] of windows.entries()) {
       if (win.webContents === sender) {
         targetId = id;
+        break;
       }
-    });
+    }
 
     if (!targetId) {
       return;
@@ -131,29 +140,10 @@ export const registerWindowHandlers = (
     childWindow?.close();
   });
 
-  ipcMain.on('child-request-edit', (_event, payload: EditPayload) => {
-    const mainWindow = getMainWindow();
-    windowValues.set(payload.id, payload.value);
-    mainWindow?.webContents.send('child-request-edit', payload);
-  });
-
-  ipcMain.on('child-sync-edit-value', (_event, payload: EditPayload) => {
-    const mainWindow = getMainWindow();
-    windowValues.set(payload.id, payload.value);
-    mainWindow?.webContents.send('child-sync-edit-value', payload);
-  });
-
-  ipcMain.on('child-save-edit', (_event, payload: EditPayload) => {
-    const mainWindow = getMainWindow();
-    windowValues.set(payload.id, payload.value);
-    mainWindow?.webContents.send('child-save-edit', payload);
-  });
-
-  ipcMain.on('child-cancel-edit', (_event, payload: EditPayload) => {
-    const mainWindow = getMainWindow();
-    windowValues.set(payload.id, payload.value);
-    mainWindow?.webContents.send('child-cancel-edit', payload);
-  });
+  forwardToMainWindow('child-request-edit');
+  forwardToMainWindow('child-sync-edit-value');
+  forwardToMainWindow('child-save-edit');
+  forwardToMainWindow('child-cancel-edit');
 
   ipcMain.on('notify-editing-state', (_event, payload: EditingStatePayload) => {
     const { id } = payload;

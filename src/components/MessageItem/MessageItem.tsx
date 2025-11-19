@@ -43,11 +43,19 @@ const MessageItem: React.FC<MessageItemProps> = ({
             />
           </div>
           <div className="message-action">
-            <button onClick={onSave} className="btn-icon btn-save">
-              <img src={SaveIcon} alt="Save" className="action-icon" />
+            <button
+              onClick={onSave}
+              className="btn-icon btn-save"
+              aria-label="Save message"
+            >
+              <img src={SaveIcon} alt="" className="action-icon" />
             </button>
-            <button onClick={onCancel} className="btn-icon btn-cancel">
-              <img src={CancelIcon} alt="Cancel" className="action-icon" />
+            <button
+              onClick={onCancel}
+              className="btn-icon btn-cancel"
+              aria-label="Cancel edit"
+            >
+              <img src={CancelIcon} alt="" className="action-icon" />
             </button>
           </div>
         </>
@@ -72,11 +80,19 @@ const MessageItem: React.FC<MessageItemProps> = ({
             {message.text}
           </div>
           <div className="message-action">
-            <button onClick={onEdit} className="btn-icon btn-edit">
-              <img src={EditIcon} alt="Edit" className="action-icon" />
+            <button
+              onClick={onEdit}
+              className="btn-icon btn-edit"
+              aria-label="Edit message"
+            >
+              <img src={EditIcon} alt="" className="action-icon" />
             </button>
-            <button onClick={onDelete} className="btn-icon btn-delete">
-              <img src={TrashIcon} alt="Delete" className="action-icon" />
+            <button
+              onClick={onDelete}
+              className="btn-icon btn-delete"
+              aria-label="Delete message"
+            >
+              <img src={TrashIcon} alt="" className="action-icon" />
             </button>
           </div>
         </>
