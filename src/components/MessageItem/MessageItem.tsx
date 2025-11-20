@@ -65,14 +65,15 @@ const MessageItem: React.FC<MessageItemProps> = ({
             className="message-text"
             role="button"
             tabIndex={0}
-            title={
-              typeof message.text === 'string'
-                ? 'Click to view full message'
-                : undefined
-            }
+            title="Click to view full message"
             onClick={onPreview}
             onKeyDown={(event) => {
-              if (event.key === 'Enter') {
+              if (
+                event.key === 'Enter' ||
+                event.key === ' ' ||
+                event.key === 'Spacebar'
+              ) {
+                event.preventDefault();
                 onPreview();
               }
             }}

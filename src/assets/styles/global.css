@@ -56,6 +56,11 @@ body {
   transform: none;
 }
 
+/* Ensure consistent spacing when multiple icon buttons are adjacent */
+.btn-icon+.btn-icon {
+  margin-left: 6px;
+}
+
 /* Container centralizado */
 .app-container {
   background-color: #fff;
@@ -117,8 +122,6 @@ h1 {
   color: #555;
 }
 
-/* src/styles/global.css */
-
 .btn-submit {
   width: 100%;
   padding: 0.75rem;
@@ -143,9 +146,6 @@ h1 {
 
 .btn-submit:active {
   background-color: #197f00;
-  /* Azul ainda mais escuro ao clicar */
   transform: scale(0.98);
-  /* Leve redução de tamanho ao clicar */
   transition: transform 0.1s ease;
-  /* Animação suave para a redução de tamanho */
 }
