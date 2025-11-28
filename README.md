@@ -7,91 +7,195 @@
 </div>
 
 <p align="center">
-  <b>Desktop application with multiple real-time synchronized windows</b><br/>
+  <b>Professional desktop application with multiple real-time synchronized windows</b><br/>
   <a href="https://github.com/Tatiwel/electron-multi-window">GitHub Repository</a>
 </p>
 
 ---
 
+## 📋 Table of Contents
+
+- [About the Project](#-about-the-project)
+- [Key Features](#-key-features)
+- [Architecture](#-architecture)
+- [Technologies Used](#️-technologies-used)
+- [Prerequisites](#-prerequisites)
+- [Installation & Usage](#-installation--usage)
+- [Project Structure](#-project-structure)
+- [Available Scripts](#-available-scripts)
+- [Development Workflow](#-development-workflow)
+- [Contributing](#-contributing)
+- [Demos](#-demos)
+- [License](#-license)
+- [Author](#-author)
+
+---
+
 ## ✨ About the Project
 
-This project demonstrates how to create a modern Electron application with React, TypeScript, and Vite, allowing multiple windows synchronized via IPC. Perfect for those who want to expand the desktop experience beyond a single window!
+This is a modern, production-ready Electron application that demonstrates advanced multi-window management with real-time synchronization. Built with React, TypeScript, and Vite, this project showcases best practices in desktop application development, including:
+
+- **Clean Architecture**: Separation of concerns with services, hooks, and components
+- **Type Safety**: Full TypeScript implementation across main and renderer processes
+- **Modern Tooling**: Vite for lightning-fast builds and HMR (Hot Module Replacement)
+- **Professional Workflows**: Git hooks, linting, and commit conventions
+
+Perfect for developers looking to build sophisticated desktop applications that go beyond single-window limitations.
 
 ---
 
-## 🤝 Contributing
+## 🚀 Key Features
 
-We follow a structured workflow to keep development organized.
+### Window Management
+- **Multi-Window Architecture**: Open and manage multiple synchronized child windows from the main window
+- **Real-Time Synchronization**: Instant bidirectional communication between all windows via IPC (Inter-Process Communication)
+- **Window State Tracking**: Robust index management ensures data integrity across window lifecycle events
+- **Edit Mode**: Edit messages in dedicated child windows with live synchronization back to the main window
 
-- For urgent fixes, branch from `master` using the `fix/` prefix.
-- For new features, chores, or refactors, branch from `development` using `feature/`, `chore/`, or `refactor/`.
-- Use semantic commit messages such as `fix: ...`, `feat: ...`, `chore: ...`, and `refactor: ...`.
-- Commit messages are checked automatically via **commitlint** when you commit.
-- If a commit is rejected, you'll see a hint like `missing prefix. Use "fix:", "feat:", "chore:", or "refactor:"`.
-- Running `npm install` or `bun install` sets up these hooks automatically.
+### User Experience
+- **Intuitive Interface**: Clean, responsive UI built with React
+- **Message Management**: Create, edit, and delete messages with UUID-based identification
+- **Window Controls**: Open, focus, and close child windows programmatically
+- **Editing State Indication**: Visual feedback when messages are being edited in child windows
 
-See [CONTRIBUTING.md](.github/CONTRIBUTING.md) for full guidelines.
+### Technical Excellence
+- **Context Isolation**: Secure IPC communication with proper preload scripts
+- **Custom Hooks**: Reusable React hooks for window and message management
+- **Service Layer**: Clean abstraction over Electron APIs
+- **Handler Pattern**: Organized IPC handlers for maintainable code
 
 ---
 
-## 🚀 Features
+## 🏗️ Architecture
 
-- **Main Window:** Enter data and open new windows.
-- **Secondary Windows:** Display and synchronize data in real time.
-- **Instant Synchronization:** Efficient communication between all windows.
-- **Modern Interface:** Responsive and intuitive UI.
+The application follows a layered architecture pattern:
+
+### Main Process (`electron/`)
+- **`main.ts`**: Application entry point, window lifecycle management
+- **`handlers/windowHandlers.ts`**: IPC communication handlers for window operations
+- **`preload.ts`**: Secure bridge between main and renderer processes
+
+### Renderer Process (`src/`)
+
+#### **Services Layer** (`src/services/`)
+- **`windowService.ts`**: Abstraction layer for window-related IPC operations
+- Provides type-safe interfaces for all window operations
+- Handles validation and error checking
+
+#### **Hooks Layer** (`src/hooks/`)
+- **`useWindowManagement.ts`**: React hook for managing window state and operations
+- **`useMessageManagement.ts`**: React hook for message CRUD operations
+- Encapsulates business logic and state management
+
+#### **Components Layer** (`src/components/`)
+- **`MessageItem/`**: Reusable message display component
+- Modular, testable UI components
+
+#### **Pages Layer** (`src/pages/`)
+- **`App.tsx`**: Main window application logic
+- **`newWindow.tsx`**: Child window application logic
+
+### Communication Flow
+
+```
+Main Window (App.tsx)
+    ↓ (User Action)
+useWindowManagement Hook
+    ↓ (Business Logic)
+windowService
+    ↓ (IPC Call)
+electronAPI (preload.ts)
+    ↓ (IPC Channel)
+windowHandlers.ts (main process)
+    ↓ (Window Management)
+Child Window (newWindow.tsx)
+    ↓ (Sync Back)
+[Bidirectional Communication Loop]
+```
 
 ---
 
 ## 🛠️ Technologies Used
 
-- [Electron](https://www.electronjs.org/)
-- [React](https://react.dev/)
-- [TypeScript](https://www.typescriptlang.org/)
-- [Vite](https://vitejs.dev/)
-- [Bun](https://bun.sh/) (alternative package manager/runtime)
+### Core Framework
+- **[Electron](https://www.electronjs.org/)** ^39.2.3 - Cross-platform desktop application framework
+- **[React](https://react.dev/)** ^19.2.0 - UI library for building component-based interfaces
+- **[TypeScript](https://www.typescriptlang.org/)** ^5.9.3 - Type-safe JavaScript superset
+
+### Build Tools
+- **[Vite](https://vitejs.dev/)** ^7.2.4 - Next-generation frontend build tool
+- **[vite-plugin-electron](https://github.com/electron-vite/vite-plugin-electron)** - Electron integration for Vite
+- **[electron-builder](https://www.electron.build/)** ^26.0.12 - Build and distribution tool
+
+### Development Tools
+- **[ESLint](https://eslint.org/)** ^9.39.1 - Code linting and quality enforcement
+- **[Husky](https://typicode.github.io/husky/)** ^9.1.7 - Git hooks for pre-commit validation
+- **[Commitlint](https://commitlint.js.org/)** ^20.1.0 - Enforce conventional commit messages
+- **[Bun](https://bun.sh/)** - Fast JavaScript runtime (optional, alternative to npm)
+
+### Utilities
+- **[UUID](https://github.com/uuidjs/uuid)** ^13.0.0 - Unique identifier generation
 
 ---
 
 ## 📦 Prerequisites
 
-- [Node.js](https://nodejs.org/) (v18+ recommended) **or** [Bun](https://bun.sh/) (v1+)
+You need one of the following:
+
+- **[Node.js](https://nodejs.org/)** v18.0.0 or higher **OR**
+- **[Bun](https://bun.sh/)** v1.0.0 or higher (recommended for faster installation)
 
 ---
 
-## 📝 How to Run
+## 📝 Installation & Usage
 
-### Using Bun
+### Using Bun (Recommended)
 
-```pwsh
+```bash
 # Clone the repository
 git clone https://github.com/Tatiwel/electron-multi-window.git
 
-# Enter the project folder
+# Navigate to the project directory
 cd electron-multi-window
 
 # Install dependencies
 bun install
 
-# Run in development mode
+# Start development mode with hot reload
 bun run dev
 ```
 
 ### Using npm
 
-```pwsh
+```bash
 # Clone the repository
 git clone https://github.com/Tatiwel/electron-multi-window.git
 
-# Enter the project folder
+# Navigate to the project directory
 cd electron-multi-window
 
 # Install dependencies
 npm install
 
-# Run in development mode
+# Start development mode with hot reload
 npm run dev
 ```
+
+### Building for Production
+
+```bash
+# Build the application for distribution
+npm run build
+# or
+bun run build
+```
+
+This will:
+1. Compile TypeScript
+2. Build the Vite project
+3. Package the Electron application with electron-builder
+
+Built applications will be available in the `dist/` directory.
 
 ---
 
@@ -99,57 +203,204 @@ npm run dev
 
 ```
 electron-multi-window/
-├── electron/           # Electron main process code (main/preload)
-├── src/
-│   ├── pages/          # React components (App, newWindow)
-│   └── assets/         # Styles and icons
-├── public/             # Public assets
-├── demo/               # GIFs and demos
-├── dist-electron/      # Electron build
-├── index.html          # Main HTML
-├── newWindow.html      # Secondary window HTML
-├── package.json        # Configurations and scripts
-└── ...
+├── .github/                    # GitHub configuration
+│   ├── ISSUE_TEMPLATE/        # Issue templates
+│   ├── CODE_OF_CONDUCT.md     # Code of conduct
+│   ├── CONTRIBUTING.md        # Contribution guidelines
+│   ├── PULL_REQUEST_TEMPLATE.md
+│   └── SECURITY.md            # Security policy
+├── .husky/                     # Git hooks configuration
+├── demo/                       # Demo GIFs and screenshots
+├── electron/                   # Electron main process
+│   ├── handlers/              # IPC handlers
+│   │   └── windowHandlers.ts # Window management IPC logic
+│   ├── main.ts                # Main process entry point
+│   ├── preload.ts             # Preload script for secure IPC
+│   └── electron-env.d.ts      # TypeScript definitions
+├── html/                       # HTML entry points
+│   ├── index.html             # Main window HTML
+│   └── newWindow.html         # Child window HTML
+├── public/                     # Static assets
+│   ├── electron-vite.svg
+│   ├── react.svg
+│   └── vite.svg
+├── src/                        # Renderer process (React app)
+│   ├── assets/                # Styles and images
+│   ├── components/            # Reusable React components
+│   │   └── MessageItem/       # Message item component
+│   ├── hooks/                 # Custom React hooks
+│   │   ├── useMessageManagement.ts
+│   │   ├── useWindowManagement.ts
+│   │   └── index.ts
+│   ├── pages/                 # Page components
+│   │   ├── App.tsx            # Main window page
+│   │   └── newWindow.tsx      # Child window page
+│   ├── services/              # Service layer
+│   │   ├── windowService.ts   # Window operations service
+│   │   └── index.ts
+│   ├── main.tsx               # React entry point (main window)
+│   └── vite-env.d.ts          # Vite TypeScript definitions
+├── .commitlintrc.cjs           # Commitlint configuration
+├── .eslintrc.cjs               # ESLint configuration
+├── .gitignore                  # Git ignore rules
+├── electron-builder.json5      # Electron builder config
+├── package.json                # Project metadata and scripts
+├── tsconfig.json               # TypeScript configuration
+├── tsconfig.node.json          # TypeScript config for Node
+├── vite.config.ts              # Vite configuration
+└── README.md                   # This file
 ```
+
+---
+
+## 🎯 Available Scripts
+
+| Command | Description |
+|---------|-------------|
+| `npm run dev` / `bun run dev` | Start the application in development mode with hot reload |
+| `npm run build` / `bun run build` | Build the application for production |
+| `npm run lint` / `bun run lint` | Run ESLint to check code quality |
+| `npm run preview` / `bun run preview` | Preview the built application |
+
+---
+
+## 💻 Development Workflow
+
+### Code Quality & Standards
+
+This project enforces code quality through automated tools:
+
+#### **Linting**
+```bash
+npm run lint
+```
+- ESLint checks TypeScript and React code
+- Configured with React hooks rules and TypeScript-specific rules
+- Maximum 0 warnings policy
+
+#### **Commit Conventions**
+Commits must follow the [Conventional Commits](https://www.conventionalcommits.org/) specification:
+
+- `feat:` - New features
+- `fix:` - Bug fixes
+- `chore:` - Maintenance tasks
+- `refactor:` - Code refactoring
+- `docs:` - Documentation updates
+- `style:` - Code style changes (formatting)
+- `test:` - Adding or updating tests
+- `perf:` - Performance improvements
+
+**Example**: `feat: add message editing in child windows`
+
+Commitlint automatically validates commit messages via Husky pre-commit hooks.
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions! Please follow these guidelines:
+
+### Branching Strategy
+
+- **`master`**: Production-ready code
+  - For urgent fixes, create branches with `fix/` prefix
+- **`development`**: Active development branch
+  - For new features, use `feature/` prefix
+  - For refactoring, use `refactor/` prefix
+  - For maintenance, use `chore/` prefix
+
+### Contribution Steps
+
+1. Fork the repository
+2. Create a feature branch from `development`:
+   ```bash
+   git checkout development
+   git checkout -b feature/your-feature-name
+   ```
+3. Make your changes following the code style
+4. Run linting: `npm run lint`
+5. Commit with conventional commit messages
+6. Push to your fork and create a Pull Request to `development`
+
+For detailed guidelines, see [CONTRIBUTING.md](.github/CONTRIBUTING.md)
+
+### Setting Up Git Hooks
+
+Git hooks are automatically installed when you run:
+```bash
+npm install
+# or
+bun install
+```
+
+This sets up:
+- **Pre-commit**: Runs linting checks
+- **Commit-msg**: Validates commit message format
 
 ---
 
 ## 🎬 Demos
 
-<p align="center">
-  <img src="demo/sync-ipc-demo.gif" width="500" alt="IPC Sync Demo" />
-</p>
-
-**Synchronized Windows:**
-This project consists of creating multiple synchronized windows using Electron, React, TypeScript, and Vite. Each window can interact and share data in real time, providing a seamless multi-window desktop experience. The application is designed to allow users to open, manage, and synchronize several windows simultaneously, removing the limitation of working with only a single window.
+### Real-Time Window Synchronization
 
 <p align="center">
-  <img src="demo/window-control-demo.gif" width="500" alt="Window Control Demo" />
+  <img src="demo/sync-ipc-demo.gif" width="600" alt="IPC Synchronization Demo" />
 </p>
 
-**Window Index Management:**
-A robust window index management system is implemented to ensure that each window is correctly referenced. This prevents issues such as actions being executed on non-existent windows or overwriting indices of closed windows. With this approach, any update or action is always directed to the correct window, maintaining data integrity and a smooth user experience.
+**What's happening here:**
+- Messages created in the main window are instantly available
+- Opening a child window to edit a message shows real-time updates
+- Changes in the child window sync back to the main window immediately
+- Multiple child windows can be opened simultaneously, all staying in sync
 
----
+### Robust Window Management
 
-## 👤 Author
+<p align="center">
+  <img src="demo/window-control-demo.gif" width="600" alt="Window Control Demo" />
+</p>
 
-Developed by [Daniel (Tatiwel)](https://github.com/Tatiwel)
+**Technical Highlights:**
+- Each window has a unique UUID identifier
+- Window state is tracked in both main and renderer processes
+- Proper cleanup when windows are closed
+- Prevents race conditions and data corruption
+- Safe handling of window lifecycle events
 
 ---
 
 ## 📄 License
 
-This project is licensed under the ISC license. See the [package.json](package.json) file for more details.
+This project is licensed under the **ISC License**. See the [LICENSE](LICENSE) file for details.
 
 ---
 
-## 🔗 Pure Electron Version
+## 👤 Author
 
-If you are interested in the same synchronized multi-window logic implemented using pure Electron (JavaScript only, no frameworks), check out the dedicated branch:
-
-👉 [pure-electron branch on GitHub](https://github.com/Tatiwel/electron-multi-window/tree/pure-electron)
-
-This branch demonstrates the core synchronization logic without React, TypeScript, or Vite, for those who prefer a minimal and framework-free approach.
+**Daniel (Tatiwel)**
+- GitHub: [@Tatiwel](https://github.com/Tatiwel)
+- Project: [electron-multi-window](https://github.com/Tatiwel/electron-multi-window)
 
 ---
+
+## 🔗 Additional Resources
+
+### Pure Electron Version
+
+Interested in a framework-free implementation? Check out the pure Electron branch:
+
+👉 **[pure-electron branch](https://github.com/Tatiwel/electron-multi-window/tree/pure-electron)**
+
+This branch demonstrates the same synchronization logic using:
+- Pure JavaScript (no TypeScript)
+- No React or frontend frameworks
+- Minimal dependencies
+- Core Electron APIs only
+
+Perfect for those who prefer a lightweight, framework-free approach or want to understand the underlying IPC mechanics without abstractions.
+
+---
+
+<div align="center">
+  <p>If you find this project helpful, please consider giving it a ⭐️</p>
+  <p>Made with ❤️ by <a href="https://github.com/Tatiwel">Tatiwel</a></p>
+</div>
