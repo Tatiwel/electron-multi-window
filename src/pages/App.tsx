@@ -1,102 +1,129 @@
-import React, { useState } from 'react';
-import { v4 as uuidv4 } from 'uuid';
-import EditIcon from '../assets/icons/edit-icon.svg';
-import TrashIcon from '../assets/icons/trash-icon.svg';
-import SaveIcon from '../assets/icons/save-icon.svg';
-import CancelIcon from '../assets/icons/cancel-icon.svg';
+import React, { useEffect, useRef, useState } from 'react';
+import MessageItem from '../components/MessageItem/MessageItem';
+import { useMessageManagement, useWindowManagement } from '../hooks';
+import { windowService } from '../services';
 import '../assets/styles/global.css';
 import '../assets/styles/app.css';
 
-interface IPC {
-  send(
-    channel: 'open-new-window',
-    payload: { id: string; value: string }
-  ): void;
-  send(channel: 'update-value', payload: { id: string; value: string }): void;
-  send(channel: 'close-window', payload: { id: string }): void;
-}
-
-declare global {
-  interface Window {
-    IpcRenderer: IPC;
-  }
-}
 
 const App: React.FC = () => {
-  const [inputValue, setInputValue] = useState('');
-  const [messages, setMessages] = useState<{ id: string; text: string }[]>([]);
-  const [editingValues, setEditingValues] = useState<Record<string, string>>(
-    {}
-  );
-
-  // Cria nova mensagem
-  const handleCreateMessage = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inputValue.trim()) return;
-    const newMessage = { id: uuidv4(), text: inputValue };
-    setMessages((prev) => [...prev, newMessage]);
-    setInputValue('');
-  };
-
-  // Atualiza input
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInputValue(e.target.value);
-  };
+  const {
+    messages,
+    inputValue,
+    handleInputChange,
+    handleCreateMessage,
+    updateMessage,
+    removeMessage,
+  } = useMessageManagement();
+  const {
+    editingValues,
+    startEditing,
+    startEditingFromRemote,
+    syncEditing,
+    syncEditingFromRemote,
+    finishEditing,
+    finishEditingFromRemote,
+    cancelEditing,
+    cancelEditingFromRemote,
+    closeEditingWindow,
+  } = useWindowManagement();
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalMessage, setModalMessage] = useState('');
 
   // Abre janela de edição e inicializa slot
   const handleEditClick = (id: string) => {
     const message = messages.find((msg) => msg.id === id);
     if (!message) return;
-    setEditingValues((prev) => ({ ...prev, [id]: message.text }));
-    window.ipcRenderer.send('open-new-window', {
-      id,
-      value: message.text,
-    });
+    startEditing(id, message.text);
   };
 
   // Sincroniza valor enquanto digita
   const handleEditingSync = (id: string, newValue: string) => {
-    setEditingValues((prev) => ({ ...prev, [id]: newValue }));
-    window.ipcRenderer.send('update-value', { id, value: newValue });
+    syncEditing(id, newValue);
   };
 
   // Salva edição de um slot específico
   const handleSave = (id: string) => {
-    setMessages((prev) =>
-      prev.map((msg) =>
-        msg.id === id ? { ...msg, text: editingValues[id] } : msg
-      )
-    );
-    setEditingValues((prev) => {
-      const { [id]: _, ...rest } = prev;
-      return rest;
-    });
+    const editedValue = editingValues[id];
+    if (editedValue === undefined) {
+      return;
+    }
+    updateMessage(id, editedValue);
+    finishEditing(id, editedValue);
   };
 
   // Cancela edição de um slot específico
   const handleCancel = (id: string) => {
     const message = messages.find((msg) => msg.id === id);
     if (!message) return;
-    window.ipcRenderer.send('update-value', {
-      id,
-      value: message.text,
-    });
-    window.ipcRenderer.send('close-window', { id });
-    setEditingValues((prev) => {
-      const { [id]: _, ...rest } = prev;
-      return rest;
-    });
+    cancelEditing(id, message.text);
   };
 
   // Deleta mensagem + limpa qualquer slot aberto
   const handleDelete = (id: string) => {
-    setMessages((prev) => prev.filter((msg) => msg.id !== id));
-    setEditingValues((prev) => {
-      const { [id]: _, ...rest } = prev;
-      return rest;
-    });
-    window.ipcRenderer.send('close-window', { id });
+    removeMessage(id);
+    closeEditingWindow(id);
   };
+
+  // Modal helpers
+  const openModal = (text: string) => {
+    setModalMessage(text);
+    setModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setModalOpen(false);
+    setModalMessage('');
+  };
+
+  // close modal on ESC
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && modalOpen) closeModal();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [modalOpen]);
+
+  const messagesRef = useRef(messages);
+
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
+
+  useEffect(() => {
+    const unsubscribeStart = windowService.onStartEditingRequest(({ id, value }) => {
+      startEditingFromRemote(id, value);
+    });
+
+    const unsubscribeSync = windowService.onSyncValueRequest(({ id, value }) => {
+      syncEditingFromRemote(id, value);
+    });
+
+    const unsubscribeSave = windowService.onSaveEditingRequest(({ id, value }) => {
+      updateMessage(id, value);
+      finishEditingFromRemote(id, value);
+    });
+
+    const unsubscribeCancel = windowService.onCancelEditingRequest(({ id, value }) => {
+      const message = messagesRef.current.find((msg) => msg.id === id);
+      const originalValue = message?.text ?? value ?? '';
+      cancelEditingFromRemote(id, originalValue);
+    });
+
+    return () => {
+      unsubscribeStart();
+      unsubscribeSync();
+      unsubscribeSave();
+      unsubscribeCancel();
+    };
+  }, [
+    cancelEditingFromRemote,
+    finishEditingFromRemote,
+    startEditingFromRemote,
+    syncEditingFromRemote,
+    updateMessage,
+  ]);
 
   return (
     <div className="app-container">
@@ -124,80 +151,39 @@ const App: React.FC = () => {
             <div className="messages-header">
               <div>Index</div>
               <div>Message</div>
-              <div style={{ width: '60px' }}>Action</div>
+              {/* Keep header width consistent with CSS (.message-row > div.message-action) */}
+              <div style={{ width: '96px' }}>Action</div>
             </div>
-
             {messages.map((message, index) => (
-              <div key={message.id} className="message-row">
-                <div className="message-index">{index + 1}.</div>
-
-                {message.id in editingValues ? (
-                  <>
-                    <div className="message-text">
-                      <input
-                        type="text"
-                        value={editingValues[message.id]}
-                        onChange={(e) =>
-                          handleEditingSync(message.id, e.target.value)
-                        }
-                        className="input-edit"
-                      />
-                    </div>
-                    <div className="message-action">
-                      <button
-                        onClick={() => handleSave(message.id)}
-                        className="btn-save"
-                      >
-                        <img
-                          src={SaveIcon}
-                          alt="Save"
-                          className="action-icon"
-                        />
-                      </button>
-                      <button
-                        onClick={() => handleCancel(message.id)}
-                        className="btn-cancel"
-                      >
-                        <img
-                          src={CancelIcon}
-                          alt="Cancel"
-                          className="action-icon"
-                        />
-                      </button>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="message-text">{message.text}</div>
-                    <div className="message-action">
-                      <button
-                        onClick={() => handleEditClick(message.id)}
-                        className="btn-edit"
-                      >
-                        <img
-                          src={EditIcon}
-                          alt="Edit"
-                          className="action-icon"
-                        />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(message.id)}
-                        className="btn-delete"
-                      >
-                        <img
-                          src={TrashIcon}
-                          alt="Delete"
-                          className="action-icon"
-                        />
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
+              <MessageItem
+                key={message.id}
+                index={index}
+                message={message}
+                isEditing={message.id in editingValues}
+                editingValue={editingValues[message.id]}
+                onEdit={() => handleEditClick(message.id)}
+                onDelete={() => handleDelete(message.id)}
+                onSave={() => handleSave(message.id)}
+                onCancel={() => handleCancel(message.id)}
+                onEditingChange={(event) =>
+                  handleEditingSync(message.id, event.target.value)
+                }
+                onPreview={() => openModal(message.text)}
+              />
             ))}
           </div>
         )}
       </div>
+
+      {modalOpen && (
+        <div className={`modal-overlay ${modalOpen ? 'open' : ''}`} onClick={closeModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close" onClick={closeModal} aria-label="Close">×</button>
+            <div className="modal-message-body">{modalMessage}</div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
