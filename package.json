@@ -1,20 +1,73 @@
 {
-  "name": "electron-multi-window",
-  "private": true,
+  "name": "electron-window-stream",
+  "private": false,
   "version": "1.0.0",
   "type": "module",
+  "description": "A generic, reusable library for managing multi-window Electron applications with IPC communication and state synchronization",
+  "keywords": [
+    "electron",
+    "multi-window",
+    "ipc",
+    "react",
+    "typescript",
+    "window-management",
+    "state-sync"
+  ],
+  "author": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Tatiwel/electron-multi-window"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build && electron-builder",
+    "build:lib": "vite build --config vite.config.lib.ts",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "prepublishOnly": "npm run build:lib"
+  },
+  "main": "./dist-lib/index.cjs",
+  "module": "./dist-lib/index.js",
+  "types": "./dist-lib/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist-lib/index.d.ts",
+      "import": "./dist-lib/index.js",
+      "require": "./dist-lib/index.cjs"
+    },
+    "./main": {
+      "types": "./dist-lib/main/index.d.ts",
+      "import": "./dist-lib/main/index.js",
+      "require": "./dist-lib/main/index.cjs"
+    },
+    "./preload": {
+      "types": "./dist-lib/preload/preload.d.ts",
+      "import": "./dist-lib/preload/preload.js",
+      "require": "./dist-lib/preload/preload.cjs"
+    },
+    "./renderer": {
+      "types": "./dist-lib/renderer/index.d.ts",
+      "import": "./dist-lib/renderer/index.js",
+      "require": "./dist-lib/renderer/index.cjs"
+    }
+  },
+  "files": [
+    "dist-lib",
+    "lib",
+    "README.md",
+    "LICENSE"
+  ],
+  "peerDependencies": {
+    "electron": ">=20.0.0",
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
   },
   "dependencies": {
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
     "uuid": "^13.0.0"
   },
   "devDependencies": {
+    "@commitlint/cli": "^20.1.0",
+    "@commitlint/config-conventional": "^20.0.0",
     "@types/react": "^19.2.6",
     "@types/react-dom": "^19.2.3",
     "@types/uuid": "^11.0.0",
@@ -26,14 +79,14 @@
     "eslint": "^9.39.1",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
+    "husky": "^9.1.7",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
     "typescript": "^5.9.3",
     "vite": "^7.2.4",
+    "vite-plugin-dts": "^4.5.4",
     "vite-plugin-electron": "^0.29.0",
-    "vite-plugin-electron-renderer": "^0.14.6",
-    "@commitlint/cli": "^20.1.0",
-    "@commitlint/config-conventional": "^20.0.0",
-    "husky": "^9.1.7"
+    "vite-plugin-electron-renderer": "^0.14.6"
   },
-  "main": "dist-electron/main.js",
   "license": "ISC"
 }

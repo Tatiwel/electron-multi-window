@@ -8,12 +8,35 @@ export type EditingStatePayload = {
 
 type Unsubscribe = () => void;
 
-const ensureElectronAPI = () => {
-  if (!window.electronAPI) {
+/**
+ * Legacy electronAPI interface for backwards compatibility
+ */
+interface LegacyElectronAPI {
+  openNewWindow: (payload: EditPayload) => void;
+  updateValue: (payload: EditPayload) => void;
+  closeWindow: (payload: ClosePayload) => void;
+  requestStartEditing: (payload: EditPayload) => void;
+  requestSyncValue: (payload: EditPayload) => void;
+  requestSaveEditing: (payload: EditPayload) => void;
+  requestCancelEditing: (payload: EditPayload) => void;
+  requestCurrentValue: () => void;
+  notifyEditingState: (payload: EditingStatePayload) => void;
+  onInitValue: (callback: (payload: EditPayload) => void) => Unsubscribe;
+  onUpdateValue: (callback: (payload: EditPayload) => void) => Unsubscribe;
+  onEditWindowClosed: (callback: (payload: ClosePayload) => void) => Unsubscribe;
+  onEditingStateChange: (callback: (payload: EditingStatePayload) => void) => Unsubscribe;
+  onStartEditingRequest: (callback: (payload: EditPayload) => void) => Unsubscribe;
+  onSyncValueRequest: (callback: (payload: EditPayload) => void) => Unsubscribe;
+  onSaveEditingRequest: (callback: (payload: EditPayload) => void) => Unsubscribe;
+  onCancelEditingRequest: (callback: (payload: EditPayload) => void) => Unsubscribe;
+}
+
+const ensureElectronAPI = (): LegacyElectronAPI => {
+  const api = (window as unknown as { electronAPI?: LegacyElectronAPI }).electronAPI;
+  if (!api) {
     throw new Error('electronAPI is unavailable in the current context.');
   }
-
-  return window.electronAPI;
+  return api;
 };
 
 export const windowService = {
