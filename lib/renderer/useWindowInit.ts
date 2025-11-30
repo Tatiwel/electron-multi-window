@@ -58,44 +58,49 @@ export const useWindowInit = <T = unknown>(): WindowInitData<T> => {
         route,
         isReady: true,
       });
-    } else {
-      // Listen for initialization
-      const unsubscribe = api.on<{ windowId: string; data: T; route?: string }>(
-        'window-init-internal',
-        (payload) => {
-          setInitData({
-            windowId: payload.windowId,
-            data: payload.data,
-            route: payload.route ?? null,
-            isReady: true,
-          });
-        }
-      );
-
-      // Request init data
-      const checkInit = () => {
-        const id = api.getWindowId();
-        const d = api.getInitialData<T>();
-        const r = api.getRoute();
-        if (id) {
-          setInitData({
-            windowId: id,
-            data: d,
-            route: r,
-            isReady: true,
-          });
-        }
-      };
-
-      // Poll for init data (in case it comes before subscription)
-      const intervalId = setInterval(checkInit, 50);
-      setTimeout(() => clearInterval(intervalId), 1000);
-
-      return () => {
-        unsubscribe();
-        clearInterval(intervalId);
-      };
+      return;
     }
+
+    // Listen for initialization via IPC channel
+    const unsubscribe = api.on<{ windowId: string; data: T; route?: string }>(
+      'window-init-internal',
+      (payload) => {
+        setInitData({
+          windowId: payload.windowId,
+          data: payload.data,
+          route: payload.route ?? null,
+          isReady: true,
+        });
+      }
+    );
+
+    // Check once more after a short delay using requestAnimationFrame
+    // This handles the race condition where init data may arrive after
+    // component mount but before subscription is set up
+    let cancelled = false;
+    const checkOnce = () => {
+      if (cancelled) return;
+      const id = api.getWindowId();
+      const d = api.getInitialData<T>();
+      const r = api.getRoute();
+      if (id) {
+        setInitData({
+          windowId: id,
+          data: d,
+          route: r,
+          isReady: true,
+        });
+      }
+    };
+
+    // Use requestAnimationFrame for efficient one-time check
+    const rafId = requestAnimationFrame(checkOnce);
+
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(rafId);
+      unsubscribe();
+    };
   }, []);
 
   return initData;

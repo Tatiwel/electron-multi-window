@@ -170,9 +170,18 @@ export const WindowRouter = <T = unknown>({
   const { windowId, data, route } = routeData;
 
   // Find matching route
+  // Routes are matched in order: exact match first, then wildcard patterns
   const matchedRoute = routes.find((r) => {
+    // Exact match
     if (route === r.path) return true;
-    if (route && r.path.endsWith('*') && route.startsWith(r.path.slice(0, -1))) return true;
+    
+    // Wildcard match: only valid if '*' is at the very end of the path
+    // e.g., '/editor/*' matches '/editor/1', '/editor/2/3', etc.
+    if (route && r.path.endsWith('/*')) {
+      const basePath = r.path.slice(0, -2); // Remove '/*'
+      return route === basePath || route.startsWith(basePath + '/');
+    }
+    
     return false;
   });
 

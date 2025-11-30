@@ -25,6 +25,8 @@ export default defineConfig({
     dts({
       include: ['lib/**/*.ts', 'lib/**/*.tsx'],
       outDir: 'dist-lib',
+      // Do not bundle all types into a single file; preserve the folder structure
+      // for proper module resolution with the exports field in package.json
       rollupTypes: false,
       insertTypesEntry: true,
     }),

@@ -55,21 +55,44 @@ const buildWindowUrl = (
 
 /**
  * Merge window options with defaults
+ * 
+ * Note: The 'parent' property is excluded from merging because it's typed as 'unknown'
+ * in WindowOptions for flexibility, but BrowserWindowConstructorOptions requires
+ * a specific type. Users should set parent when calling createWindow directly.
  */
 const mergeWindowOptions = (
   defaults: WindowOptions | undefined,
   config: WindowConfig
 ): Partial<Electron.BrowserWindowConstructorOptions> => {
-  // Extract known safe properties, excluding parent which could be unknown
-  const { parent: _parent, ...safeDefaults } = (defaults ?? {}) as WindowOptions & { parent?: unknown };
+  const safeDefaults = defaults ?? {};
   
-  return {
-    width: config.width ?? safeDefaults?.width ?? 800,
-    height: config.height ?? safeDefaults?.height ?? 600,
-    x: config.x ?? safeDefaults?.x,
-    y: config.y ?? safeDefaults?.y,
-    ...safeDefaults,
+  // Build the merged options, excluding the 'parent' property which requires
+  // special handling due to type constraints
+  const result: Partial<Electron.BrowserWindowConstructorOptions> = {
+    width: config.width ?? safeDefaults.width ?? 800,
+    height: config.height ?? safeDefaults.height ?? 600,
+    x: config.x ?? safeDefaults.x,
+    y: config.y ?? safeDefaults.y,
   };
+
+  // Copy over other safe properties from defaults
+  const safeKeys: (keyof WindowOptions)[] = [
+    'minWidth', 'minHeight', 'maxWidth', 'maxHeight',
+    'resizable', 'movable', 'minimizable', 'maximizable',
+    'closable', 'focusable', 'alwaysOnTop', 'fullscreen',
+    'fullscreenable', 'title', 'show', 'frame', 'modal',
+    'acceptFirstMouse', 'disableAutoHideCursor', 'autoHideMenuBar',
+    'enableLargerThanScreen', 'backgroundColor', 'hasShadow',
+    'opacity', 'darkTheme', 'transparent',
+  ];
+
+  for (const key of safeKeys) {
+    if (key in safeDefaults && safeDefaults[key] !== undefined) {
+      (result as Record<string, unknown>)[key] = safeDefaults[key];
+    }
+  }
+
+  return result;
 };
 
 /**
