@@ -1,3 +1,13 @@
+/**
+ * Preload script for electron-window-stream
+ * 
+ * This script exposes the generic window.electronWindow API to renderer processes.
+ * Import the preload from the library for the actual implementation.
+ */
+import '../lib/preload/preload';
+
+// Re-export old API for backwards compatibility with existing demo
+// This can be removed once the demo is fully migrated
 import { contextBridge, ipcRenderer } from 'electron';
 
 type EditPayload = { id: string; value: string };
@@ -15,6 +25,7 @@ const exposeListener = <T>(channel: string, callback: (payload: T) => void) => {
   };
 };
 
+// Legacy API for backwards compatibility
 contextBridge.exposeInMainWorld('electronAPI', {
   openNewWindow: (payload: EditPayload) =>
     ipcRenderer.send('open-new-window', payload),

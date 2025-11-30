@@ -21,6 +21,9 @@ declare namespace NodeJS {
   }
 }
 
+// Import types from the library
+import type { ElectronWindowAPI, WindowConfig, ChannelListener, Unsubscribe, EventBusMessage } from '../lib/types';
+
 // Used in Renderer process, expose in `preload.ts`
 type RendererEditPayload = { id: string; value: string };
 type RendererClosePayload = { id: string };
@@ -31,7 +34,11 @@ type RendererEditingStatePayload = {
 };
 
 interface Window {
-  electronAPI: {
+  // New generic API from electron-window-stream library
+  electronWindow?: ElectronWindowAPI;
+  
+  // Legacy API for backwards compatibility
+  electronAPI?: {
     openNewWindow: (payload: RendererEditPayload) => void
     updateValue: (payload: RendererEditPayload) => void
     closeWindow: (payload: RendererClosePayload) => void
@@ -63,3 +70,12 @@ interface Window {
     ) => () => void
   }
 }
+
+// Re-export library types for convenience
+export type {
+  ElectronWindowAPI,
+  WindowConfig,
+  ChannelListener,
+  Unsubscribe,
+  EventBusMessage,
+};
