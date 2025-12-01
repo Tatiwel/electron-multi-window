@@ -1,4 +1,4 @@
-# Electron Multiple Synchronized Windows
+# electron-multi-window
 
 <div align="center">
   <img src="public/electron-vite.svg" width="80" alt="Electron Logo" />
@@ -7,7 +7,7 @@
 </div>
 
 <p align="center">
-  <b>Professional desktop application with multiple real-time synchronized windows</b><br/>
+  <b>A library for managing multiple Electron windows with bidirectional IPC communication and state synchronization</b><br/>
   <a href="https://github.com/Tatiwel/electron-multi-window">GitHub Repository</a>
 </p>
 
@@ -15,187 +15,660 @@
 
 ## 📋 Table of Contents
 
-- [About the Project](#-about-the-project)
-- [Key Features](#-key-features)
-- [Architecture](#-architecture)
-- [Technologies Used](#️-technologies-used)
-- [Prerequisites](#-prerequisites)
-- [Installation & Usage](#-installation--usage)
-- [Project Structure](#-project-structure)
-- [Available Scripts](#-available-scripts)
-- [Development Workflow](#-development-workflow)
+- [About the Library](#-about-the-library)
+- [Installation](#-installation)
+- [Quick Start](#-quick-start)
+- [API Reference](#-api-reference)
+  - [Main Process](#main-process-api)
+  - [Renderer Process](#renderer-process-api)
+  - [React Hooks](#react-hooks)
+- [Types](#-types)
+- [Examples](#-examples)
+- [Demo Application](#-demo-application)
 - [Contributing](#-contributing)
-- [Demos](#-demos)
 - [License](#-license)
-- [Author](#-author)
 
 ---
 
-## ✨ About the Project
+## ✨ About the Library
 
-This is a modern, production-ready Electron application that demonstrates advanced multi-window management with real-time synchronization. Built with React, TypeScript, and Vite, this project showcases best practices in desktop application development, including:
+`electron-multi-window` is a lightweight, functional library that simplifies:
 
-- **Clean Architecture**: Separation of concerns with services, hooks, and components
-- **Type Safety**: Full TypeScript implementation across main and renderer processes
-- **Modern Tooling**: Vite for lightning-fast builds and HMR (Hot Module Replacement)
-- **Professional Workflows**: Git hooks, linting, and commit conventions
+- **Window Management**: Create, close, focus, and track multiple windows with a clean API
+- **Bidirectional IPC**: Easy-to-use `emit`, `listen`, and `broadcast` functions that abstract Electron's IPC complexity
+- **State Synchronization**: Built-in React hooks for synchronizing state across windows
+- **Type Safety**: Full TypeScript support with comprehensive type definitions
 
-Perfect for developers looking to build sophisticated desktop applications that go beyond single-window limitations.
+### Key Features
 
----
-
-## 🚀 Key Features
-
-### Window Management
-- **Multi-Window Architecture**: Open and manage multiple synchronized child windows from the main window
-- **Real-Time Synchronization**: Instant bidirectional communication between all windows via IPC (Inter-Process Communication)
-- **Window State Tracking**: Robust index management ensures data integrity across window lifecycle events
-- **Edit Mode**: Edit messages in dedicated child windows with live synchronization back to the main window
-
-### User Experience
-- **Intuitive Interface**: Clean, responsive UI built with React
-- **Message Management**: Create, edit, and delete messages with UUID-based identification
-- **Window Controls**: Open, focus, and close child windows programmatically
-- **Editing State Indication**: Visual feedback when messages are being edited in child windows
-
-### Technical Excellence
-- **Context Isolation**: Secure IPC communication with proper preload scripts
-- **Custom Hooks**: Reusable React hooks for window and message management
-- **Service Layer**: Clean abstraction over Electron APIs
-- **Handler Pattern**: Organized IPC handlers for maintainable code
+- 🪟 **Simple Window Creation**: `createWindow({ route: 'editor.html', initialData: { id: '123' } })`
+- 📡 **Easy IPC Communication**: `emit('channel', data)` and `listen('channel', callback)`
+- 🔄 **State Sync**: `useSyncedState('theme', 'light')` - state that syncs across all windows
+- 🎣 **React Hooks**: `useIPCListener`, `useWindowEvents`, `useAllWindows`, and more
+- 📦 **Zero Configuration**: Works out of the box with sensible defaults
+- 🔒 **Secure by Default**: Uses context isolation and proper preload scripts
 
 ---
 
-## 🏗️ Architecture
+## 📦 Installation
 
-The application follows a layered architecture pattern:
-
-### Main Process (`electron/`)
-- **`main.ts`**: Application entry point, window lifecycle management
-- **`handlers/windowHandlers.ts`**: IPC communication handlers for window operations
-- **`preload.ts`**: Secure bridge between main and renderer processes
-
-### Renderer Process (`src/`)
-
-#### **Services Layer** (`src/services/`)
-- **`windowService.ts`**: Abstraction layer for window-related IPC operations
-- Provides type-safe interfaces for all window operations
-- Handles validation and error checking
-
-#### **Hooks Layer** (`src/hooks/`)
-- **`useWindowManagement.ts`**: React hook for managing window state and operations
-- **`useMessageManagement.ts`**: React hook for message CRUD operations
-- Encapsulates business logic and state management
-
-#### **Components Layer** (`src/components/`)
-- **`MessageItem/`**: Reusable message display component
-- Modular, testable UI components
-
-#### **Pages Layer** (`src/pages/`)
-- **`App.tsx`**: Main window application logic
-- **`newWindow.tsx`**: Child window application logic
-
-### Communication Flow
-
-```
-Main Window (App.tsx)
-    ↓ (User Action)
-useWindowManagement Hook
-    ↓ (Business Logic)
-windowService
-    ↓ (IPC Call)
-electronAPI (preload.ts)
-    ↓ (IPC Channel)
-windowHandlers.ts (main process)
-    ↓ (Window Management)
-Child Window (newWindow.tsx)
-    ↓ (Sync Back)
-[Bidirectional Communication Loop]
+```bash
+npm install electron-multi-window
+# or
+yarn add electron-multi-window
+# or
+bun add electron-multi-window
 ```
 
----
+### Peer Dependencies
 
-## 🛠️ Technologies Used
-
-### Core Framework
-- **[Electron](https://www.electronjs.org/)** ^39.2.3 - Cross-platform desktop application framework
-- **[React](https://react.dev/)** ^19.2.0 - UI library for building component-based interfaces
-- **[TypeScript](https://www.typescriptlang.org/)** ^5.9.3 - Type-safe JavaScript superset
-
-### Build Tools
-- **[Vite](https://vitejs.dev/)** ^7.2.4 - Next-generation frontend build tool
-- **[vite-plugin-electron](https://github.com/electron-vite/vite-plugin-electron)** - Electron integration for Vite
-- **[electron-builder](https://www.electron.build/)** ^26.0.12 - Build and distribution tool
-
-### Development Tools
-- **[ESLint](https://eslint.org/)** ^9.39.1 - Code linting and quality enforcement
-- **[Husky](https://typicode.github.io/husky/)** ^9.1.7 - Git hooks for pre-commit validation
-- **[Commitlint](https://commitlint.js.org/)** ^20.1.0 - Enforce conventional commit messages
-- **[Bun](https://bun.sh/)** - Fast JavaScript runtime (optional, alternative to npm)
-
-### Utilities
-- **[UUID](https://github.com/uuidjs/uuid)** ^13.0.0 - Unique identifier generation
+- `electron` >= 20.0.0
+- `react` >= 17.0.0 (optional, only for React hooks)
 
 ---
 
-## 📦 Prerequisites
+## 🚀 Quick Start
 
-You need one of the following:
+### 1. Main Process Setup
 
-- **[Node.js](https://nodejs.org/)** v18.0.0 or higher **OR**
-- **[Bun](https://bun.sh/)** v1.0.0 or higher (recommended for faster installation)
+```typescript
+// main.ts
+import { app, BrowserWindow } from 'electron';
+import { initMultiWindow, createWindow } from 'electron-multi-window/main';
+import path from 'path';
+
+app.whenReady().then(() => {
+  // Initialize the library
+  initMultiWindow({
+    preloadPath: path.join(__dirname, 'preload.js'),
+    rendererDist: path.join(__dirname, '../dist'),
+    devServerUrl: process.env.VITE_DEV_SERVER_URL, // Optional: for dev mode
+  });
+
+  // Create the main window
+  createWindow({
+    id: 'main',
+    route: 'index.html',
+    width: 1200,
+    height: 800,
+  });
+});
+```
+
+### 2. Preload Script
+
+```typescript
+// preload.ts
+import 'electron-multi-window/preload';
+
+// That's it! The library automatically exposes the API to the renderer.
+// You can add additional preload code below if needed.
+```
+
+### 3. Renderer Process (React)
+
+```tsx
+// App.tsx
+import { 
+  createWindow, 
+  emit, 
+  useIPCListener,
+  useSyncedState 
+} from 'electron-multi-window/renderer';
+
+function App() {
+  // State synchronized across all windows
+  const [theme, setTheme] = useSyncedState('app:theme', 'light');
+
+  // Listen for messages from other windows
+  useIPCListener('document:updated', (data) => {
+    console.log('Document updated:', data);
+  });
+
+  const openEditor = async () => {
+    await createWindow({
+      id: 'editor',
+      route: 'editor.html',
+      width: 800,
+      height: 600,
+      initialData: { documentId: '123', title: 'My Document' }
+    });
+  };
+
+  const notifyOtherWindows = () => {
+    emit('user:action', { action: 'clicked', timestamp: Date.now() });
+  };
+
+  return (
+    <div className={theme}>
+      <button onClick={openEditor}>Open Editor</button>
+      <button onClick={notifyOtherWindows}>Notify Others</button>
+      <button onClick={() => setTheme(t => t === 'light' ? 'dark' : 'light')}>
+        Toggle Theme
+      </button>
+    </div>
+  );
+}
+```
 
 ---
 
-## 📝 Installation & Usage
+## 📖 API Reference
 
-### Using Bun (Recommended)
+### Main Process API
+
+Import from `electron-multi-window/main`:
+
+#### `initMultiWindow(options)`
+
+Initialize the library. Must be called before creating windows.
+
+```typescript
+initMultiWindow({
+  preloadPath: string;           // Path to preload script (required)
+  rendererDist: string;          // Path to renderer dist folder (required)
+  devServerUrl?: string;         // Dev server URL for development
+  defaultWindowOptions?: Partial<WindowConfig>;  // Default options for all windows
+});
+```
+
+#### `createWindow(config)`
+
+Creates a new window with the specified configuration.
+
+```typescript
+const windowInfo = await createWindow({
+  id?: string;           // Unique ID (auto-generated if not provided)
+  title?: string;        // Window title
+  width?: number;        // Width in pixels (default: 800)
+  height?: number;       // Height in pixels (default: 600)
+  x?: number;            // X position
+  y?: number;            // Y position
+  url?: string;          // URL to load (for remote content)
+  filePath?: string;     // Local file path
+  route?: string;        // Route/path appended to base URL
+  show?: boolean;        // Show immediately (default: true)
+  parentId?: string;     // Parent window ID for child windows
+  modal?: boolean;       // Modal window
+  initialData?: unknown; // Data passed to the window
+  browserWindowOptions?: Partial<BrowserWindowConstructorOptions>;
+});
+```
+
+#### `closeWindow(windowId)`
+
+Closes a window by ID.
+
+```typescript
+closeWindow('editor-window');
+```
+
+#### `getAllWindows()`
+
+Returns information about all active windows.
+
+```typescript
+const windows = getAllWindows();
+// Returns: WindowInfo[]
+```
+
+#### `getWindow(windowId)`
+
+Gets information about a specific window.
+
+```typescript
+const info = getWindow('main');
+// Returns: WindowInfo | undefined
+```
+
+#### `focusWindow(windowId)`
+
+Focuses a window by ID.
+
+```typescript
+focusWindow('editor-window');
+```
+
+#### `closeAllWindows()`
+
+Closes all windows managed by the library.
+
+#### `onWindowEvent(callback)`
+
+Subscribe to window events in the main process.
+
+```typescript
+const unsubscribe = onWindowEvent((event) => {
+  console.log(`Window ${event.windowId} was ${event.type}`);
+});
+```
+
+#### `sendToWindow(windowId, channel, data)`
+
+Send a message to a specific window from main process.
+
+```typescript
+sendToWindow('editor', 'config:update', { theme: 'dark' });
+```
+
+#### `broadcast(channel, data)`
+
+Broadcast a message to all windows from main process.
+
+```typescript
+broadcast('app:notification', { message: 'Update available' });
+```
+
+---
+
+### Renderer Process API
+
+Import from `electron-multi-window/renderer`:
+
+#### `createWindow(config)`
+
+Create a new window from renderer process.
+
+```typescript
+const windowInfo = await createWindow({
+  route: 'editor.html',
+  initialData: { documentId: '123' }
+});
+```
+
+#### `closeWindow(windowId)`
+
+Close a window by ID.
+
+```typescript
+closeWindow('editor-window');
+```
+
+#### `closeCurrentWindow()`
+
+Close the current window.
+
+```typescript
+await closeCurrentWindow();
+```
+
+#### `getAllWindows()`
+
+Get all active windows.
+
+```typescript
+const windows = await getAllWindows();
+```
+
+#### `getWindow(windowId)`
+
+Get a specific window's info.
+
+```typescript
+const info = await getWindow('main');
+```
+
+#### `focusWindow(windowId)`
+
+Focus a window.
+
+```typescript
+focusWindow('main');
+```
+
+#### `getCurrentWindowId()`
+
+Get the current window's ID.
+
+```typescript
+const myId = await getCurrentWindowId();
+```
+
+#### `getInitialData<T>()`
+
+Get the data passed when the window was created.
+
+```typescript
+interface EditorData {
+  documentId: string;
+  title: string;
+}
+
+const data = await getInitialData<EditorData>();
+```
+
+#### `emit(channel, data, targetWindowId?)`
+
+Send a message to other windows.
+
+```typescript
+// Send to a specific window
+emit('document:updated', { id: '123', content: '...' }, 'main-window');
+
+// Broadcast to all other windows
+emit('user:activity', { action: 'typing' });
+```
+
+#### `broadcast(channel, data)`
+
+Send a message to ALL windows including the current one.
+
+```typescript
+broadcast('theme:changed', { theme: 'dark' });
+```
+
+#### `listen(channel, callback)`
+
+Listen for messages on a channel.
+
+```typescript
+const unsubscribe = listen('document:updated', (data, message) => {
+  console.log(`Received from ${message.sourceWindowId}:`, data);
+});
+
+// Later: unsubscribe();
+```
+
+#### `onWindowEvent(callback)`
+
+Listen for window lifecycle events.
+
+```typescript
+const unsubscribe = onWindowEvent((event) => {
+  if (event.type === 'closed') {
+    console.log(`Window ${event.windowId} was closed`);
+  }
+});
+```
+
+---
+
+### React Hooks
+
+Import from `electron-multi-window/renderer`:
+
+#### `useCurrentWindowId()`
+
+Get the current window's ID.
+
+```tsx
+const windowId = useCurrentWindowId();
+```
+
+#### `useInitialData<T>()`
+
+Get initial data with loading state.
+
+```tsx
+const { data, isLoading, error } = useInitialData<EditorData>();
+
+if (isLoading) return <Loading />;
+if (error) return <Error message={error.message} />;
+
+return <Editor documentId={data?.documentId} />;
+```
+
+#### `useIPCListener(channel, callback)`
+
+Listen for messages with automatic cleanup.
+
+```tsx
+useIPCListener('document:updated', (data, message) => {
+  console.log('Update from', message.sourceWindowId);
+});
+```
+
+#### `useWindowEvents(callback, eventTypes?)`
+
+Listen for window events.
+
+```tsx
+useWindowEvents((event) => {
+  console.log(`Window ${event.windowId}: ${event.type}`);
+}, ['created', 'closed']); // Optional filter
+```
+
+#### `useAllWindows()`
+
+Get all windows with auto-refresh.
+
+```tsx
+const { windows, isLoading, refresh } = useAllWindows();
+
+return (
+  <ul>
+    {windows.map(win => (
+      <li key={win.id}>{win.title}</li>
+    ))}
+  </ul>
+);
+```
+
+#### `useCreateWindow()`
+
+Create windows with loading state.
+
+```tsx
+const { createWindow, isCreating, lastCreated, error } = useCreateWindow();
+
+const handleOpen = async () => {
+  await createWindow({ route: 'editor.html' });
+};
+```
+
+#### `useEmit(channel)`
+
+Get a stable emit function for a channel.
+
+```tsx
+const emitUpdate = useEmit('document:updated');
+
+const handleChange = (content) => {
+  emitUpdate({ id: documentId, content });
+};
+```
+
+#### `useBroadcast(channel)`
+
+Get a stable broadcast function for a channel.
+
+```tsx
+const broadcastTheme = useBroadcast('theme:changed');
+
+const toggleTheme = () => {
+  broadcastTheme({ theme: newTheme });
+};
+```
+
+#### `useSyncedState(channel, initialValue)`
+
+State that automatically syncs across all windows.
+
+```tsx
+// This state will be synchronized across all windows
+const [sharedCounter, setSharedCounter] = useSyncedState('counter', 0);
+
+return (
+  <button onClick={() => setSharedCounter(c => c + 1)}>
+    Count: {sharedCounter}
+  </button>
+);
+```
+
+---
+
+## 📝 Types
+
+```typescript
+interface WindowConfig {
+  id?: string;
+  title?: string;
+  width?: number;
+  height?: number;
+  x?: number;
+  y?: number;
+  url?: string;
+  filePath?: string;
+  route?: string;
+  show?: boolean;
+  parentId?: string;
+  modal?: boolean;
+  initialData?: unknown;
+  browserWindowOptions?: Partial<BrowserWindowConstructorOptions>;
+}
+
+interface WindowInfo {
+  id: string;
+  title: string;
+  isVisible: boolean;
+  isFocused: boolean;
+  isDestroyed: boolean;
+  bounds: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
+}
+
+interface IPCMessage<T = unknown> {
+  channel: string;
+  data: T;
+  sourceWindowId?: string;
+  targetWindowId?: string;
+  timestamp: number;
+}
+
+type WindowEventType = 
+  | 'created' | 'closed' | 'focused' | 'blurred' 
+  | 'moved' | 'resized' | 'minimized' | 'maximized' | 'restored';
+
+interface WindowEvent {
+  type: WindowEventType;
+  windowId: string;
+  timestamp: number;
+  data?: unknown;
+}
+```
+
+---
+
+## 📚 Examples
+
+### Multi-Window Chat Application
+
+```tsx
+// MainWindow.tsx
+import { createWindow, useAllWindows } from 'electron-multi-window/renderer';
+
+function MainWindow() {
+  const { windows } = useAllWindows();
+  
+  const openChat = async (userId: string) => {
+    await createWindow({
+      id: `chat-${userId}`,
+      route: 'chat.html',
+      initialData: { userId },
+      width: 400,
+      height: 500,
+    });
+  };
+
+  return (
+    <div>
+      <h2>Active Chats: {windows.length}</h2>
+      <button onClick={() => openChat('user-123')}>New Chat</button>
+    </div>
+  );
+}
+
+// ChatWindow.tsx
+import { useInitialData, useIPCListener, emit } from 'electron-multi-window/renderer';
+
+function ChatWindow() {
+  const { data } = useInitialData<{ userId: string }>();
+  const [messages, setMessages] = useState([]);
+
+  useIPCListener('chat:message', (msg) => {
+    if (msg.userId === data?.userId) {
+      setMessages(prev => [...prev, msg]);
+    }
+  });
+
+  const sendMessage = (text: string) => {
+    emit('chat:message', { userId: data?.userId, text });
+  };
+
+  return <ChatUI messages={messages} onSend={sendMessage} />;
+}
+```
+
+### Synchronized Settings Across Windows
+
+```tsx
+import { useSyncedState } from 'electron-multi-window/renderer';
+
+function SettingsPanel() {
+  const [settings, setSettings] = useSyncedState('app:settings', {
+    theme: 'light',
+    fontSize: 14,
+    showSidebar: true,
+  });
+
+  return (
+    <div className={settings.theme}>
+      <select 
+        value={settings.theme}
+        onChange={(e) => setSettings(s => ({ ...s, theme: e.target.value }))}
+      >
+        <option value="light">Light</option>
+        <option value="dark">Dark</option>
+      </select>
+      
+      <input
+        type="range"
+        value={settings.fontSize}
+        onChange={(e) => setSettings(s => ({ ...s, fontSize: +e.target.value }))}
+      />
+    </div>
+  );
+}
+```
+
+---
+
+## 🎬 Demo Application
+
+This repository includes a complete demo application showcasing the library's capabilities.
+
+### Running the Demo
 
 ```bash
 # Clone the repository
 git clone https://github.com/Tatiwel/electron-multi-window.git
-
-# Navigate to the project directory
-cd electron-multi-window
-
-# Install dependencies
-bun install
-
-# Start development mode with hot reload
-bun run dev
-```
-
-### Using npm
-
-```bash
-# Clone the repository
-git clone https://github.com/Tatiwel/electron-multi-window.git
-
-# Navigate to the project directory
 cd electron-multi-window
 
 # Install dependencies
 npm install
 
-# Start development mode with hot reload
+# Run the demo
 npm run dev
 ```
 
-### Building for Production
+### Demo Features
 
-```bash
-# Build the application for distribution
-npm run build
-# or
-bun run build
-```
+<p align="center">
+  <img src="demo/sync-ipc-demo.gif" width="600" alt="IPC Synchronization Demo" />
+</p>
 
-This will:
-1. Compile TypeScript
-2. Build the Vite project
-3. Package the Electron application with electron-builder
+- **Real-time synchronization** between main and child windows
+- **Message creation and editing** with live updates
+- **Multi-window state management**
+- **UUID-based window tracking**
 
-Built applications will be available in the `dist/` directory.
+<p align="center">
+  <img src="demo/window-control-demo.gif" width="600" alt="Window Control Demo" />
+</p>
 
 ---
 
@@ -203,168 +676,79 @@ Built applications will be available in the `dist/` directory.
 
 ```
 electron-multi-window/
-├── .github/                    # GitHub configuration
-│   ├── ISSUE_TEMPLATE/        # Issue templates
-│   ├── CODE_OF_CONDUCT.md     # Code of conduct
-│   ├── CONTRIBUTING.md        # Contribution guidelines
-│   ├── PULL_REQUEST_TEMPLATE.md
-│   └── SECURITY.md            # Security policy
-├── .husky/                     # Git hooks configuration
-├── demo/                       # Demo GIFs and screenshots
-├── electron/                   # Electron main process
-│   ├── handlers/              # IPC handlers
-│   │   └── windowHandlers.ts # Window management IPC logic
-│   ├── main.ts                # Main process entry point
-│   ├── preload.ts             # Preload script for secure IPC
-│   └── electron-env.d.ts      # TypeScript definitions
-├── html/                       # HTML entry points
-│   ├── index.html             # Main window HTML
-│   └── newWindow.html         # Child window HTML
+├── src/
+│   ├── lib/                    # 📦 Library source code
+│   │   ├── main/              # Main process API
+│   │   │   ├── windowManager.ts
+│   │   │   └── index.ts
+│   │   ├── renderer/          # Renderer process API
+│   │   │   ├── multiWindow.ts
+│   │   │   ├── hooks.ts
+│   │   │   └── index.ts
+│   │   ├── preload/           # Preload script
+│   │   │   ├── preload.ts
+│   │   │   └── index.ts
+│   │   ├── shared/            # Shared types
+│   │   │   ├── types.ts
+│   │   │   └── index.ts
+│   │   └── index.ts           # Main entry point
+│   │
+│   ├── pages/                  # Demo app pages
+│   ├── components/             # Demo app components
+│   ├── hooks/                  # Demo app hooks
+│   └── services/               # Demo app services
+│
+├── electron/                   # Demo app Electron setup
+├── html/                       # Demo app HTML files
 ├── public/                     # Static assets
-│   ├── electron-vite.svg
-│   ├── react.svg
-│   └── vite.svg
-├── src/                        # Renderer process (React app)
-│   ├── assets/                # Styles and images
-│   ├── components/            # Reusable React components
-│   │   └── MessageItem/       # Message item component
-│   ├── hooks/                 # Custom React hooks
-│   │   ├── useMessageManagement.ts
-│   │   ├── useWindowManagement.ts
-│   │   └── index.ts
-│   ├── pages/                 # Page components
-│   │   ├── App.tsx            # Main window page
-│   │   └── newWindow.tsx      # Child window page
-│   ├── services/              # Service layer
-│   │   ├── windowService.ts   # Window operations service
-│   │   └── index.ts
-│   ├── main.tsx               # React entry point (main window)
-│   └── vite-env.d.ts          # Vite TypeScript definitions
-├── .commitlintrc.cjs           # Commitlint configuration
-├── .eslintrc.cjs               # ESLint configuration
-├── .gitignore                  # Git ignore rules
-├── electron-builder.json5      # Electron builder config
-├── package.json                # Project metadata and scripts
-├── tsconfig.json               # TypeScript configuration
-├── tsconfig.node.json          # TypeScript config for Node
-├── vite.config.ts              # Vite configuration
-└── README.md                   # This file
+├── demo/                       # Demo GIFs
+│
+├── package.json                # NPM package configuration
+├── tsconfig.lib.json          # TypeScript config for library
+├── tsconfig.json              # TypeScript config for demo
+└── vite.config.ts             # Vite configuration
 ```
 
 ---
 
-## 🎯 Available Scripts
+## 🛠️ Development
+
+### Building the Library
+
+```bash
+npm run build:lib
+```
+
+This compiles the library to `dist/lib/` with TypeScript declarations.
+
+### Building Everything (Library + Demo)
+
+```bash
+npm run build
+```
+
+### Available Scripts
 
 | Command | Description |
 |---------|-------------|
-| `npm run dev` / `bun run dev` | Start the application in development mode with hot reload |
-| `npm run build` / `bun run build` | Build the application for production |
-| `npm run lint` / `bun run lint` | Run ESLint to check code quality |
-| `npm run preview` / `bun run preview` | Preview the built application |
-
----
-
-## 💻 Development Workflow
-
-### Code Quality & Standards
-
-This project enforces code quality through automated tools:
-
-#### **Linting**
-```bash
-npm run lint
-```
-- ESLint checks TypeScript and React code
-- Configured with React hooks rules and TypeScript-specific rules
-- Maximum 0 warnings policy
-
-#### **Commit Conventions**
-Commits must follow the [Conventional Commits](https://www.conventionalcommits.org/) specification:
-
-- `feat:` - New features
-- `fix:` - Bug fixes
-- `chore:` - Maintenance tasks
-- `refactor:` - Code refactoring
-- `docs:` - Documentation updates
-- `style:` - Code style changes (formatting)
-- `test:` - Adding or updating tests
-- `perf:` - Performance improvements
-
-**Example**: `feat: add message editing in child windows`
-
-Commitlint automatically validates commit messages via Husky pre-commit hooks.
+| `npm run dev` | Start demo app in development mode |
+| `npm run build` | Build library and demo app |
+| `npm run build:lib` | Build library only |
+| `npm run build:example` | Build demo app only |
+| `npm run lint` | Run ESLint |
 
 ---
 
 ## 🤝 Contributing
 
-We welcome contributions! Please follow these guidelines:
-
-### Branching Strategy
-
-- **`master`**: Production-ready code
-  - For urgent fixes, create branches with `fix/` prefix
-- **`development`**: Active development branch
-  - For new features, use `feature/` prefix
-  - For refactoring, use `refactor/` prefix
-  - For maintenance, use `chore/` prefix
-
-### Contribution Steps
+Contributions are welcome! Please follow these guidelines:
 
 1. Fork the repository
-2. Create a feature branch from `development`:
-   ```bash
-   git checkout development
-   git checkout -b feature/your-feature-name
-   ```
-3. Make your changes following the code style
-4. Run linting: `npm run lint`
-5. Commit with conventional commit messages
-6. Push to your fork and create a Pull Request to `development`
+2. Create a feature branch: `git checkout -b feature/your-feature`
+3. Commit using conventional commits: `feat: add new feature`
+4. Push and create a Pull Request
 
 For detailed guidelines, see [CONTRIBUTING.md](.github/CONTRIBUTING.md)
-
-### Setting Up Git Hooks
-
-Git hooks are automatically installed when you run:
-```bash
-npm install
-# or
-bun install
-```
-
-This sets up:
-- **Pre-commit**: Runs linting checks
-- **Commit-msg**: Validates commit message format
-
----
-
-## 🎬 Demos
-
-### Real-Time Window Synchronization
-
-<p align="center">
-  <img src="demo/sync-ipc-demo.gif" width="600" alt="IPC Synchronization Demo" />
-</p>
-
-**What's happening here:**
-- Messages created in the main window are instantly available
-- Opening a child window to edit a message shows real-time updates
-- Changes in the child window sync back to the main window immediately
-- Multiple child windows can be opened simultaneously, all staying in sync
-
-### Robust Window Management
-
-<p align="center">
-  <img src="demo/window-control-demo.gif" width="600" alt="Window Control Demo" />
-</p>
-
-**Technical Highlights:**
-- Each window has a unique UUID identifier
-- Window state is tracked in both main and renderer processes
-- Proper cleanup when windows are closed
-- Prevents race conditions and data corruption
-- Safe handling of window lifecycle events
 
 ---
 
@@ -379,24 +763,6 @@ This project is licensed under the **ISC License**. See the [LICENSE](LICENSE) f
 **Daniel (Tatiwel)**
 - GitHub: [@Tatiwel](https://github.com/Tatiwel)
 - Project: [electron-multi-window](https://github.com/Tatiwel/electron-multi-window)
-
----
-
-## 🔗 Additional Resources
-
-### Pure Electron Version
-
-Interested in a framework-free implementation? Check out the pure Electron branch:
-
-👉 **[pure-electron branch](https://github.com/Tatiwel/electron-multi-window/tree/pure-electron)**
-
-This branch demonstrates the same synchronization logic using:
-- Pure JavaScript (no TypeScript)
-- No React or frontend frameworks
-- Minimal dependencies
-- Core Electron APIs only
-
-Perfect for those who prefer a lightweight, framework-free approach or want to understand the underlying IPC mechanics without abstractions.
 
 ---
 
