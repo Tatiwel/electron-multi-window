@@ -1,18 +1,66 @@
 {
   "name": "electron-multi-window",
-  "private": true,
   "version": "1.0.0",
+  "description": "A library for managing multiple Electron windows with bidirectional IPC communication and state synchronization",
   "type": "module",
+  "main": "dist/lib/index.js",
+  "module": "dist/lib/index.js",
+  "types": "dist/lib/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/lib/index.d.ts",
+      "import": "./dist/lib/index.js"
+    },
+    "./main": {
+      "types": "./dist/lib/main/index.d.ts",
+      "import": "./dist/lib/main/index.js"
+    },
+    "./renderer": {
+      "types": "./dist/lib/renderer/index.d.ts",
+      "import": "./dist/lib/renderer/index.js"
+    },
+    "./preload": {
+      "types": "./dist/lib/preload/index.d.ts",
+      "import": "./dist/lib/preload/preload.js"
+    }
+  },
+  "files": [
+    "dist/lib"
+  ],
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build && electron-builder",
+    "build": "npm run build:lib && npm run build:example",
+    "build:lib": "tsc -p tsconfig.lib.json",
+    "build:example": "vite build && electron-builder",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "prepublishOnly": "npm run build:lib"
   },
+  "keywords": [
+    "electron",
+    "multi-window",
+    "ipc",
+    "window-management",
+    "react",
+    "typescript"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Tatiwel/electron-multi-window.git"
+  },
+  "author": "Tatiwel",
+  "license": "ISC",
   "dependencies": {
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
     "uuid": "^13.0.0"
+  },
+  "peerDependencies": {
+    "electron": ">=20.0.0",
+    "react": ">=17.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@types/react": "^19.2.6",
@@ -26,6 +74,8 @@
     "eslint": "^9.39.1",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
     "typescript": "^5.9.3",
     "vite": "^7.2.4",
     "vite-plugin-electron": "^0.29.0",
@@ -33,7 +83,5 @@
     "@commitlint/cli": "^20.1.0",
     "@commitlint/config-conventional": "^20.0.0",
     "husky": "^9.1.7"
-  },
-  "main": "dist-electron/main.js",
-  "license": "ISC"
+  }
 }
