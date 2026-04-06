@@ -27,7 +27,7 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
     "typescript": "^5.9.3",
-    "vite": "^7.2.4",
+    "vite": "^7.3.2",
     "vite-plugin-electron": "^0.29.0",
     "vite-plugin-electron-renderer": "^0.14.6",
     "@commitlint/cli": "^20.1.0",
