@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "prepare": "husky",
     "test:e2e": "vite build && playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e:ui": "vite build && playwright test --ui"
   },
   "dependencies": {
     "react": "^19.3.0",
