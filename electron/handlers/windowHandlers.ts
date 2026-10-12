@@ -39,7 +39,7 @@ const buildNewWindowUrl = (
     return new URL('html/newWindow.html', normalized).toString();
   }
 
-  return path.join(rendererDist, 'newWindow.html');
+  return path.join(rendererDist, 'html', 'newWindow.html');
 };
 
 export const registerWindowHandlers = (

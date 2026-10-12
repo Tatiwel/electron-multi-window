@@ -39,4 +39,15 @@ export default defineConfig([
       ],
     },
   },
+  {
+    // Playwright fixtures use `({}, use) => ...`, which is not a React hook.
+    files: ['tests/e2e/**/*.ts'],
+    languageOptions: {
+      globals: globals.node,
+    },
+    rules: {
+      'no-empty-pattern': ['error', { allowObjectPatternsAsParameters: true }],
+      'react-hooks/rules-of-hooks': 'off',
+    },
+  },
 ]);
