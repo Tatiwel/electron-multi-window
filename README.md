@@ -118,38 +118,34 @@ Child Window (newWindow.tsx)
 ## 🛠️ Technologies Used
 
 ### Core Framework
-- **[Electron](https://www.electronjs.org/)** ^39.2.3 - Cross-platform desktop application framework
-- **[React](https://react.dev/)** ^19.2.0 - UI library for building component-based interfaces
-- **[TypeScript](https://www.typescriptlang.org/)** ^5.9.3 - Type-safe JavaScript superset
+- **[Electron](https://www.electronjs.org/)** ^44.7.0 - Cross-platform desktop application framework
+- **[React](https://react.dev/)** ^19.3.0 - UI library for building component-based interfaces
+- **[TypeScript](https://www.typescriptlang.org/)** ^6.0.3 - Type-safe JavaScript superset
 
 ### Build Tools
-- **[Vite](https://vitejs.dev/)** ^7.2.4 - Next-generation frontend build tool
-- **[vite-plugin-electron](https://github.com/electron-vite/vite-plugin-electron)** - Electron integration for Vite
-- **[electron-builder](https://www.electron.build/)** ^26.0.12 - Build and distribution tool
+- **[Vite](https://vitejs.dev/)** ^8.3.4 - Next-generation frontend build tool
+- **[vite-plugin-electron](https://github.com/electron-vite/vite-plugin-electron)** ^1.1.2 - Electron integration for Vite
+- **[electron-builder](https://www.electron.build/)** ^26.15.3 - Build and distribution tool
 
 ### Development Tools
-- **[ESLint](https://eslint.org/)** ^9.39.1 - Code linting and quality enforcement
+- **[ESLint](https://eslint.org/)** ^10.12.0 - Code linting and quality enforcement
 - **[Husky](https://typicode.github.io/husky/)** ^9.1.7 - Git hooks for pre-commit validation
-- **[Commitlint](https://commitlint.js.org/)** ^20.1.0 - Enforce conventional commit messages
-- **[Bun](https://bun.sh/)** - Fast JavaScript runtime (optional, alternative to npm)
+- **[Commitlint](https://commitlint.js.org/)** ^21.2.3 - Enforce conventional commit messages
+- **[Bun](https://bun.sh/)** - Package manager and script runner for the project
 
 ### Utilities
-- **[UUID](https://github.com/uuidjs/uuid)** ^13.0.0 - Unique identifier generation
+- **[UUID](https://github.com/uuidjs/uuid)** ^14.0.3 - Unique identifier generation
 
 ---
 
 ## 📦 Prerequisites
 
-You need one of the following:
-
-- **[Node.js](https://nodejs.org/)** v18.0.0 or higher **OR**
-- **[Bun](https://bun.sh/)** v1.0.0 or higher (recommended for faster installation)
+- **[Bun](https://bun.sh/)** v1.x (the project's package manager)
+- **[Node.js](https://nodejs.org/)** v20.19+ or v22.12+ (required by Vite 8)
 
 ---
 
 ## 📝 Installation & Usage
-
-### Using Bun (Recommended)
 
 ```bash
 # Clone the repository
@@ -165,28 +161,10 @@ bun install
 bun run dev
 ```
 
-### Using npm
-
-```bash
-# Clone the repository
-git clone https://github.com/Tatiwel/electron-multi-window.git
-
-# Navigate to the project directory
-cd electron-multi-window
-
-# Install dependencies
-npm install
-
-# Start development mode with hot reload
-npm run dev
-```
-
 ### Building for Production
 
 ```bash
 # Build the application for distribution
-npm run build
-# or
 bun run build
 ```
 
@@ -241,7 +219,7 @@ electron-multi-window/
 │   ├── main.tsx               # React entry point (main window)
 │   └── vite-env.d.ts          # Vite TypeScript definitions
 ├── .commitlintrc.cjs           # Commitlint configuration
-├── .eslintrc.cjs               # ESLint configuration
+├── eslint.config.js            # ESLint configuration (flat config)
 ├── .gitignore                  # Git ignore rules
 ├── electron-builder.json5      # Electron builder config
 ├── package.json                # Project metadata and scripts
@@ -257,10 +235,10 @@ electron-multi-window/
 
 | Command | Description |
 |---------|-------------|
-| `npm run dev` / `bun run dev` | Start the application in development mode with hot reload |
-| `npm run build` / `bun run build` | Build the application for production |
-| `npm run lint` / `bun run lint` | Run ESLint to check code quality |
-| `npm run preview` / `bun run preview` | Preview the built application |
+| `bun run dev` | Start the application in development mode with hot reload |
+| `bun run build` | Build the application for production |
+| `bun run lint` | Run ESLint to check code quality |
+| `bun run preview` | Preview the built application |
 
 ---
 
@@ -272,7 +250,7 @@ This project enforces code quality through automated tools:
 
 #### **Linting**
 ```bash
-npm run lint
+bun run lint
 ```
 - ESLint checks TypeScript and React code
 - Configured with React hooks rules and TypeScript-specific rules
@@ -318,7 +296,7 @@ We welcome contributions! Please follow these guidelines:
    git checkout -b feature/your-feature-name
    ```
 3. Make your changes following the code style
-4. Run linting: `npm run lint`
+4. Run linting: `bun run lint`
 5. Commit with conventional commit messages
 6. Push to your fork and create a Pull Request to `development`
 
@@ -326,10 +304,8 @@ For detailed guidelines, see [CONTRIBUTING.md](.github/CONTRIBUTING.md)
 
 ### Setting Up Git Hooks
 
-Git hooks are automatically installed when you run:
+Git hooks are installed by the `prepare` script (`husky`), which runs automatically when you run:
 ```bash
-npm install
-# or
 bun install
 ```
 
@@ -389,6 +365,8 @@ This project is licensed under the **ISC License**. See the [LICENSE](LICENSE) f
 Interested in a framework-free implementation? Check out the pure Electron branch:
 
 👉 **[pure-electron branch](https://github.com/Tatiwel/electron-multi-window/tree/pure-electron)**
+
+The `pure-electron` branch is **version 1** of this project. It is frozen at the [`pure-electron-v1.0.0`](https://github.com/Tatiwel/electron-multi-window/tree/pure-electron-v1.0.0) tag and will be modernized after the React version.
 
 This branch demonstrates the same synchronization logic using:
 - Pure JavaScript (no TypeScript)

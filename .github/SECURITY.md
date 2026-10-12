@@ -2,11 +2,11 @@
 
 ## Supported Versions
 
-This project is under active development and only the latest version (main branch) is officially supported with security updates. Older versions and branches may not receive security patches.
+This project is under active development and only the latest version (master branch) is officially supported with security updates. Older versions and branches may not receive security patches.
 
 | Version/Branch | Supported |
 | -------------- | --------- |
-| main           | ✅        |
+| master         | ✅        |
 | pure-electron  | ✅        |
 | others         | ❌        |
 
