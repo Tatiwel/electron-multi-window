@@ -46,7 +46,7 @@ function createWindow() {
     ).toString();
     mainWindow.loadURL(devEntryUrl);
   } else {
-    mainWindow.loadFile(path.join(RENDERER_DIST, 'index.html'));
+    mainWindow.loadFile(path.join(RENDERER_DIST, 'html', 'index.html'));
   }
 
   mainWindow.on('closed', () => {

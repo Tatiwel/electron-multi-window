@@ -11,7 +11,7 @@ export default defineConfig({
         entry: 'electron/main.ts',
       },
       preload: {
-        input: path.join(__dirname, 'electron/preload.ts'),
+        input: path.join(import.meta.dirname, 'electron/preload.ts'),
       },
       renderer: process.env.NODE_ENV === 'test' ? undefined : {},
     }),
@@ -19,8 +19,8 @@ export default defineConfig({
   build: {
     rolldownOptions: {
       input: {
-        main: path.resolve(__dirname, 'html/index.html'),
-        newWindow: path.resolve(__dirname, 'html/newWindow.html'),
+        main: path.resolve(import.meta.dirname, 'html/index.html'),
+        newWindow: path.resolve(import.meta.dirname, 'html/newWindow.html'),
       },
     },
   },
