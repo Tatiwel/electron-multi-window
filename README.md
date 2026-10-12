@@ -239,6 +239,8 @@ electron-multi-window/
 | `bun run build` | Build the application for production |
 | `bun run lint` | Run ESLint to check code quality |
 | `bun run preview` | Preview the built application |
+| `bun run test:e2e` | Build the app and run the Playwright end-to-end tests |
+| `bun run test:e2e:ui` | Build the app and open the Playwright UI runner |
 
 ---
 
