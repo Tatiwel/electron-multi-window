@@ -1,12 +1,15 @@
-export type EditPayload = { id: string; value: string };
-export type ClosePayload = { id: string };
-export type EditingStatePayload = {
-  id: string;
-  value: string;
-  isEditing: boolean;
-};
+import type {
+  ClosePayload,
+  EditPayload,
+  EditingStatePayload,
+  Unsubscribe,
+} from '../../shared/ipc';
 
-type Unsubscribe = () => void;
+export type {
+  ClosePayload,
+  EditPayload,
+  EditingStatePayload,
+} from '../../shared/ipc';
 
 const ensureElectronAPI = () => {
   if (!window.electronAPI) {

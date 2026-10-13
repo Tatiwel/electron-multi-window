@@ -1,20 +1,12 @@
 import { BrowserWindow, ipcMain } from 'electron';
 import path from 'node:path';
-
-interface EditPayload {
-  id: string;
-  value: string;
-}
-
-interface ClosePayload {
-  id: string;
-}
-
-interface EditingStatePayload {
-  id: string;
-  value: string;
-  isEditing: boolean;
-}
+import {
+  IPC,
+  type ClosePayload,
+  type EditPayload,
+  type EditingStatePayload,
+  type IpcChannel,
+} from '../../shared/ipc';
 
 interface RegisterWindowHandlersOptions {
   preloadPath: string;
@@ -54,10 +46,10 @@ export const registerWindowHandlers = (
 
   const maybeNotifyMainWindow = (payload: ClosePayload) => {
     const mainWindow = getMainWindow();
-    mainWindow?.webContents.send('edit-window-closed', payload);
+    mainWindow?.webContents.send(IPC.EDIT_WINDOW_CLOSED, payload);
   };
 
-  const forwardToMainWindow = (channel: string) => {
+  const forwardToMainWindow = (channel: IpcChannel) => {
     ipcMain.on(channel, (_event, payload: EditPayload) => {
       const mainWindow = getMainWindow();
       windowValues.set(payload.id, payload.value);
@@ -65,14 +57,14 @@ export const registerWindowHandlers = (
     });
   };
 
-  ipcMain.on('open-new-window', async (_event, payload: EditPayload) => {
+  ipcMain.on(IPC.OPEN_NEW_WINDOW, async (_event, payload: EditPayload) => {
     const { id } = payload;
 
     const existingWindow = windows.get(id);
     if (existingWindow) {
       existingWindow.focus();
       windowValues.set(id, payload.value);
-      existingWindow.webContents.send('update-value', payload);
+      existingWindow.webContents.send(IPC.UPDATE_VALUE, payload);
       return;
     }
 
@@ -97,7 +89,7 @@ export const registerWindowHandlers = (
       await childWindow.loadFile(urlOrPath);
     }
 
-    childWindow.webContents.send('init-value', payload);
+    childWindow.webContents.send(IPC.INIT_VALUE, payload);
 
     childWindow.on('closed', () => {
       windows.delete(id);
@@ -107,16 +99,16 @@ export const registerWindowHandlers = (
     });
   });
 
-  ipcMain.on('update-value', (_event, payload: EditPayload) => {
+  ipcMain.on(IPC.UPDATE_VALUE, (_event, payload: EditPayload) => {
     const { id } = payload;
     windowValues.set(id, payload.value);
     const childWindow = windows.get(id);
     if (childWindow) {
-      childWindow.webContents.send('update-value', payload);
+      childWindow.webContents.send(IPC.UPDATE_VALUE, payload);
     }
   });
 
-  ipcMain.on('child-request-current-value', (event) => {
+  ipcMain.on(IPC.CHILD_REQUEST_CURRENT_VALUE, (event) => {
     const sender = event.sender;
     let targetId: string | null = null;
     for (const [id, win] of windows.entries()) {
@@ -131,26 +123,30 @@ export const registerWindowHandlers = (
     }
 
     const value = windowValues.get(targetId) ?? '';
-    sender.send('init-value', { id: targetId, value });
+    const payload: EditPayload = { id: targetId, value };
+    sender.send(IPC.INIT_VALUE, payload);
   });
 
-  ipcMain.on('close-window', (_event, payload: ClosePayload) => {
+  ipcMain.on(IPC.CLOSE_WINDOW, (_event, payload: ClosePayload) => {
     const { id } = payload;
     const childWindow = windows.get(id);
     childWindow?.close();
   });
 
-  forwardToMainWindow('child-request-edit');
-  forwardToMainWindow('child-sync-edit-value');
-  forwardToMainWindow('child-save-edit');
-  forwardToMainWindow('child-cancel-edit');
+  forwardToMainWindow(IPC.CHILD_REQUEST_EDIT);
+  forwardToMainWindow(IPC.CHILD_SYNC_EDIT_VALUE);
+  forwardToMainWindow(IPC.CHILD_SAVE_EDIT);
+  forwardToMainWindow(IPC.CHILD_CANCEL_EDIT);
 
-  ipcMain.on('notify-editing-state', (_event, payload: EditingStatePayload) => {
-    const { id } = payload;
-    const childWindow = windows.get(id);
-    windowValues.set(id, payload.value);
-    childWindow?.webContents.send('editing-state-changed', payload);
-  });
+  ipcMain.on(
+    IPC.NOTIFY_EDITING_STATE,
+    (_event, payload: EditingStatePayload) => {
+      const { id } = payload;
+      const childWindow = windows.get(id);
+      windowValues.set(id, payload.value);
+      childWindow?.webContents.send(IPC.EDITING_STATE_CHANGED, payload);
+    }
+  );
 };
 
 export const closeAllChildWindows = () => {
