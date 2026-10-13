@@ -84,11 +84,17 @@ export const registerWindowHandlers = (
     const { id } = payload;
 
     const existingWindow = windows.get(id);
-    if (existingWindow) {
+    if (existingWindow && !existingWindow.isDestroyed()) {
       existingWindow.focus();
       windowValues.set(id, payload.value);
       existingWindow.webContents.send(IPC.UPDATE_VALUE, payload);
       return;
+    }
+    if (existingWindow) {
+      // Stale entry: the window was destroyed without its 'closed' handler
+      // cleaning up. Drop it and create a fresh one.
+      windows.delete(id);
+      windowValues.delete(id);
     }
 
     const childWindow = new BrowserWindow({
@@ -104,22 +110,37 @@ export const registerWindowHandlers = (
     windows.set(id, childWindow);
     windowValues.set(id, payload.value);
 
-    const urlOrPath = buildNewWindowUrl(devServerUrl, rendererDist);
-
-    if (devServerUrl) {
-      await childWindow.loadURL(urlOrPath);
-    } else {
-      await childWindow.loadFile(urlOrPath);
-    }
-
-    childWindow.webContents.send(IPC.INIT_VALUE, payload);
-
+    // Registered before loading so a window closed mid-load is still cleaned up.
     childWindow.on('closed', () => {
       windows.delete(id);
       windowValues.delete(id);
       maybeNotifyMainWindow({ id });
       options.onChildWindowClosed?.(id);
     });
+
+    const urlOrPath = buildNewWindowUrl(devServerUrl, rendererDist);
+
+    try {
+      if (devServerUrl) {
+        await childWindow.loadURL(urlOrPath);
+      } else {
+        await childWindow.loadFile(urlOrPath);
+      }
+    } catch (error) {
+      console.error(`Failed to load the edit window for ${id}:`, error);
+      if (!childWindow.isDestroyed()) {
+        childWindow.close();
+      }
+      windows.delete(id);
+      windowValues.delete(id);
+      return;
+    }
+
+    if (childWindow.isDestroyed()) {
+      return;
+    }
+
+    childWindow.webContents.send(IPC.INIT_VALUE, payload);
   });
 
   ipcMain.on(IPC.UPDATE_VALUE, (event, payload: unknown) => {
@@ -168,7 +189,11 @@ export const registerWindowHandlers = (
 };
 
 export const closeAllChildWindows = () => {
-  windows.forEach((win) => win.close());
+  windows.forEach((win) => {
+    if (!win.isDestroyed()) {
+      win.close();
+    }
+  });
   windows.clear();
   windowValues.clear();
 };
