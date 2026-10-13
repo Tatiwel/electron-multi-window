@@ -63,3 +63,23 @@ export interface ElectronAPI {
     callback: (payload: EditPayload) => void
   ) => Unsubscribe;
 }
+
+// Runtime guards for payloads coming over IPC. Kept deliberately small; the
+// project does not need a validation library.
+const isRecord = (x: unknown): x is Record<string, unknown> =>
+  typeof x === 'object' && x !== null;
+
+const hasNonEmptyId = (x: Record<string, unknown>) =>
+  typeof x.id === 'string' && x.id.length > 0;
+
+export const isClosePayload = (x: unknown): x is ClosePayload =>
+  isRecord(x) && hasNonEmptyId(x);
+
+export const isEditPayload = (x: unknown): x is EditPayload =>
+  isRecord(x) && hasNonEmptyId(x) && typeof x.value === 'string';
+
+export const isEditingStatePayload = (x: unknown): x is EditingStatePayload =>
+  isRecord(x) &&
+  hasNonEmptyId(x) &&
+  typeof x.value === 'string' &&
+  typeof x.isEditing === 'boolean';
