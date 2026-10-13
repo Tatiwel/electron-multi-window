@@ -35,7 +35,7 @@ const electronAPI: ElectronAPI = {
     ipcRenderer.send(IPC.CHILD_SAVE_EDIT, payload),
   requestCancelEditing: (payload) =>
     ipcRenderer.send(IPC.CHILD_CANCEL_EDIT, payload),
-  requestCurrentValue: () => ipcRenderer.send(IPC.CHILD_REQUEST_CURRENT_VALUE),
+  getCurrentValue: () => ipcRenderer.invoke(IPC.GET_CURRENT_VALUE),
   notifyEditingState: (payload) =>
     ipcRenderer.send(IPC.NOTIFY_EDITING_STATE, payload),
   onInitValue: (callback) =>

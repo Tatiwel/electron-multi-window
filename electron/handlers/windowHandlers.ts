@@ -1,4 +1,4 @@
-import { BrowserWindow, ipcMain, type IpcMainEvent } from 'electron';
+import { BrowserWindow, ipcMain, type WebContents } from 'electron';
 import path from 'node:path';
 import {
   IPC,
@@ -51,20 +51,20 @@ export const registerWindowHandlers = (
     mainWindow?.webContents.send(IPC.EDIT_WINDOW_CLOSED, payload);
   };
 
-  // Only the main window and the child windows this module created may talk
-  // to these handlers.
-  const isKnownSender = (event: IpcMainEvent) => {
-    const { sender } = event;
-    if (getMainWindow()?.webContents === sender) {
-      return true;
-    }
-    for (const win of windows.values()) {
+  const findChildIdBySender = (sender: WebContents) => {
+    for (const [id, win] of windows.entries()) {
       if (win.webContents === sender) {
-        return true;
+        return id;
       }
     }
-    return false;
+    return null;
   };
+
+  // Only the main window and the child windows this module created may talk
+  // to these handlers.
+  const isKnownSender = (event: { sender: WebContents }) =>
+    getMainWindow()?.webContents === event.sender ||
+    findChildIdBySender(event.sender) !== null;
 
   const forwardToMainWindow = (channel: IpcChannel) => {
     ipcMain.on(channel, (event, payload: unknown) => {
@@ -134,26 +134,12 @@ export const registerWindowHandlers = (
     }
   });
 
-  ipcMain.on(IPC.CHILD_REQUEST_CURRENT_VALUE, (event) => {
-    if (!isKnownSender(event)) {
-      return;
+  ipcMain.handle(IPC.GET_CURRENT_VALUE, (event): EditPayload | null => {
+    const id = findChildIdBySender(event.sender);
+    if (id === null) {
+      return null;
     }
-    const sender = event.sender;
-    let targetId: string | null = null;
-    for (const [id, win] of windows.entries()) {
-      if (win.webContents === sender) {
-        targetId = id;
-        break;
-      }
-    }
-
-    if (!targetId) {
-      return;
-    }
-
-    const value = windowValues.get(targetId) ?? '';
-    const payload: EditPayload = { id: targetId, value };
-    sender.send(IPC.INIT_VALUE, payload);
+    return { id, value: windowValues.get(id) ?? '' };
   });
 
   ipcMain.on(IPC.CLOSE_WINDOW, (event, payload: unknown) => {

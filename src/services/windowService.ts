@@ -41,8 +41,8 @@ export const windowService = {
   requestCancelEditing(payload: EditPayload) {
     ensureElectronAPI().requestCancelEditing(payload);
   },
-  requestCurrentValue() {
-    ensureElectronAPI().requestCurrentValue();
+  getCurrentValue(): Promise<EditPayload | null> {
+    return ensureElectronAPI().getCurrentValue();
   },
   notifyEditingState(payload: EditingStatePayload) {
     ensureElectronAPI().notifyEditingState(payload);

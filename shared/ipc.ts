@@ -23,8 +23,9 @@ export const IPC = {
   CHILD_SYNC_EDIT_VALUE: 'child-sync-edit-value',
   CHILD_SAVE_EDIT: 'child-save-edit',
   CHILD_CANCEL_EDIT: 'child-cancel-edit',
-  CHILD_REQUEST_CURRENT_VALUE: 'child-request-current-value',
   NOTIFY_EDITING_STATE: 'notify-editing-state',
+  // renderer -> main (invoke/handle)
+  GET_CURRENT_VALUE: 'get-current-value',
   // main -> renderer
   INIT_VALUE: 'init-value',
   EDIT_WINDOW_CLOSED: 'edit-window-closed',
@@ -42,7 +43,8 @@ export interface ElectronAPI {
   requestSyncValue: (payload: EditPayload) => void;
   requestSaveEditing: (payload: EditPayload) => void;
   requestCancelEditing: (payload: EditPayload) => void;
-  requestCurrentValue: () => void;
+  /** Resolves with the value the main process holds for the calling child window. */
+  getCurrentValue: () => Promise<EditPayload | null>;
   notifyEditingState: (payload: EditingStatePayload) => void;
   onInitValue: (callback: (payload: EditPayload) => void) => Unsubscribe;
   onUpdateValue: (callback: (payload: EditPayload) => void) => Unsubscribe;
