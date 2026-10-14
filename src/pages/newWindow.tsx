@@ -77,9 +77,22 @@ const NewWindow: React.FC = () => {
     const unsubscribeUpdate = windowService.onUpdateValue(updateHandler);
     const unsubscribeEditingState = windowService.onEditingStateChange(editingStateHandler);
 
-    windowService.requestCurrentValue();
+    // Ask the main process for the value it holds for this window. The
+    // `init-value` push after load is still delivered through `onInitValue`.
+    let active = true;
+    windowService
+      .getCurrentValue()
+      .then((payload) => {
+        if (active && payload) {
+          initHandler(payload);
+        }
+      })
+      .catch((error: unknown) => {
+        console.error('Failed to fetch the current value:', error);
+      });
 
     return () => {
+      active = false;
       unsubscribeInit();
       unsubscribeUpdate();
       unsubscribeEditingState();

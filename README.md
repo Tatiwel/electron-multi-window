@@ -68,7 +68,10 @@ Perfect for developers looking to build sophisticated desktop applications that 
 
 ## 🏗️ Architecture
 
-The application follows a layered architecture pattern:
+The application follows a layered architecture pattern. The IPC contract (payload types, channel names and the runtime validation guards) lives in `shared/`, which both the main process and the renderer import.
+
+### Shared (`shared/`)
+- **`ipc.ts`**: Channel names, payload types, payload type guards and the `ElectronAPI` interface exposed by the preload script
 
 ### Main Process (`electron/`)
 - **`main.ts`**: Application entry point, window lifecycle management
@@ -173,7 +176,7 @@ This will:
 2. Build the Vite project
 3. Package the Electron application with electron-builder
 
-Built applications will be available in the `dist/` directory.
+Packaged applications will be available in the `release/<version>/` directory (for example `release/1.2.0/`).
 
 ---
 
@@ -195,6 +198,8 @@ electron-multi-window/
 │   ├── main.ts                # Main process entry point
 │   ├── preload.ts             # Preload script for secure IPC
 │   └── electron-env.d.ts      # TypeScript definitions
+├── shared/                     # Code imported by both processes
+│   └── ipc.ts                 # IPC channel names, payload types, guards and the electronAPI contract
 ├── html/                       # HTML entry points
 │   ├── index.html             # Main window HTML
 │   └── newWindow.html         # Child window HTML
@@ -241,6 +246,7 @@ electron-multi-window/
 | `bun run preview` | Preview the built application |
 | `bun run test:e2e` | Build the app and run the Playwright end-to-end tests |
 | `bun run test:e2e:ui` | Build the app and open the Playwright UI runner |
+| `bun run test:e2e:headless` | Run the e2e tests under Xvfb, isolating Electron from the desktop session (Wayland) |
 
 ---
 
