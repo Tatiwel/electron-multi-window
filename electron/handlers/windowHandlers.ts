@@ -110,10 +110,18 @@ export const registerWindowHandlers = (
     windows.set(id, childWindow);
     windowValues.set(id, payload.value);
 
+    // Only drop the map entries if this window still owns the id, so a late
+    // callback from an old window cannot evict a replacement with the same id.
+    const forgetIfOwner = () => {
+      if (windows.get(id) === childWindow) {
+        windows.delete(id);
+        windowValues.delete(id);
+      }
+    };
+
     // Registered before loading so a window closed mid-load is still cleaned up.
     childWindow.on('closed', () => {
-      windows.delete(id);
-      windowValues.delete(id);
+      forgetIfOwner();
       maybeNotifyMainWindow({ id });
       options.onChildWindowClosed?.(id);
     });
@@ -131,8 +139,7 @@ export const registerWindowHandlers = (
       if (!childWindow.isDestroyed()) {
         childWindow.close();
       }
-      windows.delete(id);
-      windowValues.delete(id);
+      forgetIfOwner();
       return;
     }
 
