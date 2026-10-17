@@ -5,6 +5,8 @@ import {
   closeAllChildWindows,
   registerWindowHandlers,
 } from './handlers/windowHandlers';
+import { createStore } from './store';
+import { initialState } from '../shared/reducer';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 process.env.APP_ROOT = path.join(__dirname, '..');
@@ -18,11 +20,15 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
 
 let mainWindow: BrowserWindow | null = null;
 
+// The main process is the single source of truth for the application state.
+const store = createStore(initialState);
+
 registerWindowHandlers({
   preloadPath: path.join(__dirname, 'preload.mjs'),
   devServerUrl: VITE_DEV_SERVER_URL,
   rendererDist: RENDERER_DIST,
   getMainWindow: () => mainWindow,
+  store,
 });
 
 function createWindow() {
