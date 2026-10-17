@@ -21,6 +21,16 @@ const childValue = (child: Page) =>
     return document.querySelector('.message-box')?.textContent ?? '';
   });
 
+// Opening a child from the main window starts editing in both windows; this
+// cancels it so a scenario can start editing from the child instead.
+const leaveEditMode = async (main: Page, rowIndex: number) => {
+  await messageRows(main)
+    .nth(rowIndex)
+    .getByRole('button', { name: 'Cancel edit' })
+    .click();
+  await expect(rowEditInput(main, rowIndex)).toHaveCount(0);
+};
+
 test('creates a message', async ({ main }) => {
   await createMessage(main, 'hello world');
 
@@ -64,11 +74,6 @@ test('opens a child window with the message', async ({ app, main }) => {
 });
 
 test('editing in the main window syncs to the child', async ({ app, main }) => {
-  // Known defect (a): the main process sends the editing state before the
-  // child finishes loading, so the child opens in read mode instead of edit
-  // mode. Remove test.fail() once the child opens already editing.
-  test.fail();
-
   await createMessage(main, 'original');
   const child = await openChildWindow(app, main, 0);
 
@@ -125,6 +130,9 @@ test('editing and saving in the child updates the main window', async ({
   await createMessage(main, 'original');
   const child = await openChildWindow(app, main, 0);
 
+  // The child opens already editing; leave edit mode so editing can be
+  // started from the child.
+  await leaveEditMode(main, 0);
   await child.getByRole('button', { name: 'Edit message' }).click();
   await child.getByPlaceholder('Type your message').fill('saved in child');
 
@@ -145,6 +153,9 @@ test('editing and cancelling in the child reverts both windows', async ({
   await createMessage(main, 'original');
   const child = await openChildWindow(app, main, 0);
 
+  // The child opens already editing; leave edit mode so editing can be
+  // started from the child.
+  await leaveEditMode(main, 0);
   await child.getByRole('button', { name: 'Edit message' }).click();
   await child.getByPlaceholder('Type your message').fill('discard me');
   await expect(rowEditInput(main, 0)).toHaveValue('discard me');
@@ -163,14 +174,12 @@ test('closing the child while editing ends editing in the main window', async ({
   app,
   main,
 }) => {
-  // Known defect (b): App.tsx does not consume the `edit-window-closed` event,
-  // so the main window stays in edit mode after the child is closed with the X.
-  // Remove test.fail() once the main window handles that event.
-  test.fail();
-
   await createMessage(main, 'original');
   const child = await openChildWindow(app, main, 0);
 
+  // The child opens already editing; leave edit mode so editing can be
+  // started from the child.
+  await leaveEditMode(main, 0);
   await child.getByRole('button', { name: 'Edit message' }).click();
   await child.getByPlaceholder('Type your message').fill('unsaved');
   await expect(rowEditInput(main, 0)).toHaveValue('unsaved');
@@ -279,4 +288,47 @@ test('closing the main window closes all children and quits', async ({
 
   expect(firstChild.isClosed()).toBe(true);
   expect(secondChild.isClosed()).toBe(true);
+});
+
+test('fast typing loses no keystroke and reaches the other window', async ({
+  app,
+  main,
+}) => {
+  await createMessage(main, 'original');
+  const child = await openChildWindow(app, main, 0);
+  const editor = child.locator('.message-editor');
+  await expect(editor).toHaveValue('original');
+
+  const typedInMain = 'abcdefghijklmnopqrstuvwxyz0123456789ABCD';
+  expect(typedInMain).toHaveLength(40);
+  await rowEditInput(main, 0).fill('');
+  await rowEditInput(main, 0).pressSequentially(typedInMain, { delay: 0 });
+  await expect(rowEditInput(main, 0)).toHaveValue(typedInMain);
+  await expect.poll(() => editor.inputValue()).toBe(typedInMain);
+
+  const typedInChild = 'DCBA9876543210zyxwvutsrqponmlkjihgfedcba';
+  expect(typedInChild).toHaveLength(40);
+  await editor.fill('');
+  await editor.pressSequentially(typedInChild, { delay: 0 });
+  await expect(editor).toHaveValue(typedInChild);
+  await expect.poll(() => rowEditInput(main, 0).inputValue()).toBe(
+    typedInChild
+  );
+});
+
+test('closing the child with the X reverts the edit started in the main window', async ({
+  app,
+  main,
+}) => {
+  await createMessage(main, 'original');
+  const child = await openChildWindow(app, main, 0);
+
+  await rowEditInput(main, 0).fill('unsaved');
+  await expect(child.locator('.message-editor')).toHaveValue('unsaved');
+
+  await child.close();
+  await expect.poll(() => app.windows().length).toBe(1);
+
+  await expect(rowEditInput(main, 0)).toHaveCount(0);
+  await expect(rowText(main, 0)).toHaveText('original');
 });
