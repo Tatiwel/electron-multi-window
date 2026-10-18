@@ -2,68 +2,61 @@
  * IPC contract shared by the main process, the preload script and the
  * renderer. This file must stay free of Electron, Node and DOM imports so
  * that every side can bundle it.
+ *
+ * The main process owns the application state. Renderers dispatch actions
+ * and receive the whole state back whenever it changes.
  */
 
-export type EditPayload = { id: string; value: string };
-export type ClosePayload = { id: string };
-export type EditingStatePayload = {
-  id: string;
-  value: string;
-  isEditing: boolean;
+export type Message = { id: string; value: string };
+
+export type AppState = {
+  messages: Message[];
+  /** Draft per message id. A message is being edited iff its key exists. */
+  editing: Record<string, string>;
 };
+
+export type Action =
+  | { type: 'message/create'; value: string }
+  | { type: 'message/delete'; id: string }
+  | { type: 'edit/start'; id: string }
+  | { type: 'edit/draft'; id: string; value: string }
+  | { type: 'edit/save'; id: string }
+  | { type: 'edit/cancel'; id: string };
+
+export type ActionType = Action['type'];
+
+/** What a child window learns about itself from the main process. */
+export type WindowContext = { messageId: string };
 
 export type Unsubscribe = () => void;
 
 export const IPC = {
-  // renderer -> main
-  OPEN_NEW_WINDOW: 'open-new-window',
-  UPDATE_VALUE: 'update-value',
-  CLOSE_WINDOW: 'close-window',
-  CHILD_REQUEST_EDIT: 'child-request-edit',
-  CHILD_SYNC_EDIT_VALUE: 'child-sync-edit-value',
-  CHILD_SAVE_EDIT: 'child-save-edit',
-  CHILD_CANCEL_EDIT: 'child-cancel-edit',
-  NOTIFY_EDITING_STATE: 'notify-editing-state',
   // renderer -> main (invoke/handle)
-  GET_CURRENT_VALUE: 'get-current-value',
-  // main -> renderer
-  INIT_VALUE: 'init-value',
-  EDIT_WINDOW_CLOSED: 'edit-window-closed',
-  EDITING_STATE_CHANGED: 'editing-state-changed',
+  STORE_GET: 'store:get',
+  // renderer -> main
+  STORE_DISPATCH: 'store:dispatch',
+  // main -> renderers
+  STORE_CHANGED: 'store:changed',
+  // renderer -> main
+  WINDOW_OPEN: 'window:open',
+  WINDOW_CLOSE: 'window:close',
+  // renderer -> main (invoke/handle)
+  WINDOW_CONTEXT: 'window:context',
 } as const;
 
 export type IpcChannel = (typeof IPC)[keyof typeof IPC];
 
 /** Shape of `window.electronAPI`, as exposed by `electron/preload.ts`. */
 export interface ElectronAPI {
-  openNewWindow: (payload: EditPayload) => void;
-  updateValue: (payload: EditPayload) => void;
-  closeWindow: (payload: ClosePayload) => void;
-  requestStartEditing: (payload: EditPayload) => void;
-  requestSyncValue: (payload: EditPayload) => void;
-  requestSaveEditing: (payload: EditPayload) => void;
-  requestCancelEditing: (payload: EditPayload) => void;
-  /** Resolves with the value the main process holds for the calling child window. */
-  getCurrentValue: () => Promise<EditPayload | null>;
-  notifyEditingState: (payload: EditingStatePayload) => void;
-  onInitValue: (callback: (payload: EditPayload) => void) => Unsubscribe;
-  onUpdateValue: (callback: (payload: EditPayload) => void) => Unsubscribe;
-  onEditWindowClosed: (
-    callback: (payload: ClosePayload) => void
-  ) => Unsubscribe;
-  onEditingStateChange: (
-    callback: (payload: EditingStatePayload) => void
-  ) => Unsubscribe;
-  onStartEditingRequest: (
-    callback: (payload: EditPayload) => void
-  ) => Unsubscribe;
-  onSyncValueRequest: (callback: (payload: EditPayload) => void) => Unsubscribe;
-  onSaveEditingRequest: (
-    callback: (payload: EditPayload) => void
-  ) => Unsubscribe;
-  onCancelEditingRequest: (
-    callback: (payload: EditPayload) => void
-  ) => Unsubscribe;
+  /** Resolves with the whole application state held by the main process. */
+  getState: () => Promise<AppState>;
+  dispatch: (action: Action) => void;
+  onStateChanged: (callback: (state: AppState) => void) => Unsubscribe;
+  /** Opens, or focuses, the child window of the given message. */
+  openWindow: (id: string) => void;
+  closeWindow: (id: string) => void;
+  /** Resolves with the message this (child) window belongs to, or null. */
+  getWindowContext: () => Promise<WindowContext | null>;
 }
 
 // Runtime guards for payloads coming over IPC. Kept deliberately small; the
@@ -74,14 +67,24 @@ const isRecord = (x: unknown): x is Record<string, unknown> =>
 const hasNonEmptyId = (x: Record<string, unknown>) =>
   typeof x.id === 'string' && x.id.length > 0;
 
-export const isClosePayload = (x: unknown): x is ClosePayload =>
-  isRecord(x) && hasNonEmptyId(x);
+export const isMessageId = (x: unknown): x is string =>
+  typeof x === 'string' && x.length > 0;
 
-export const isEditPayload = (x: unknown): x is EditPayload =>
-  isRecord(x) && hasNonEmptyId(x) && typeof x.value === 'string';
-
-export const isEditingStatePayload = (x: unknown): x is EditingStatePayload =>
-  isRecord(x) &&
-  hasNonEmptyId(x) &&
-  typeof x.value === 'string' &&
-  typeof x.isEditing === 'boolean';
+export const isAction = (x: unknown): x is Action => {
+  if (!isRecord(x)) {
+    return false;
+  }
+  switch (x.type) {
+    case 'message/create':
+      return typeof x.value === 'string';
+    case 'message/delete':
+    case 'edit/start':
+    case 'edit/save':
+    case 'edit/cancel':
+      return hasNonEmptyId(x);
+    case 'edit/draft':
+      return hasNonEmptyId(x) && typeof x.value === 'string';
+    default:
+      return false;
+  }
+};

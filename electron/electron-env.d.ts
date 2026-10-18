@@ -21,7 +21,9 @@ declare namespace NodeJS {
   }
 }
 
-// Exposed to the renderer by `preload.ts`; the contract lives in `shared/ipc.ts`.
+// Exposed to the renderer by `preload.ts`: getState, dispatch, onStateChanged,
+// openWindow, closeWindow and getWindowContext. The contract lives in
+// `shared/ipc.ts`.
 interface Window {
   electronAPI: import('../shared/ipc').ElectronAPI;
 }

@@ -1,4 +1,6 @@
 import React from 'react';
+import { useDraftInput } from '../../hooks';
+import type { Message } from '../../services';
 import EditIcon from '../../assets/icons/edit-icon.svg';
 import TrashIcon from '../../assets/icons/trash-icon.svg';
 import SaveIcon from '../../assets/icons/save-icon.svg';
@@ -6,14 +8,14 @@ import CancelIcon from '../../assets/icons/cancel-icon.svg';
 
 interface MessageItemProps {
   index: number;
-  message: { id: string; text: string };
+  message: Message;
   isEditing: boolean;
   editingValue?: string;
   onEdit: () => void;
   onDelete: () => void;
   onSave: () => void;
   onCancel: () => void;
-  onEditingChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onEditingChange: (value: string) => void;
   onPreview: () => void;
 }
 
@@ -29,6 +31,8 @@ const MessageItem: React.FC<MessageItemProps> = ({
   onEditingChange,
   onPreview,
 }) => {
+  const draft = useDraftInput(editingValue ?? '', onEditingChange);
+
   return (
     <div className="message-row">
       <div className="message-index">{index + 1}.</div>
@@ -37,8 +41,8 @@ const MessageItem: React.FC<MessageItemProps> = ({
           <div className="message-text">
             <input
               type="text"
-              value={editingValue ?? ''}
-              onChange={onEditingChange}
+              value={draft.value}
+              onChange={draft.handleChange}
               className="input-edit"
             />
           </div>
@@ -78,7 +82,7 @@ const MessageItem: React.FC<MessageItemProps> = ({
               }
             }}
           >
-            {message.text}
+            {message.value}
           </div>
           <div className="message-action">
             <button
