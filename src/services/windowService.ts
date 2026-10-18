@@ -1,12 +1,6 @@
-export type EditPayload = { id: string; value: string };
-export type ClosePayload = { id: string };
-export type EditingStatePayload = {
-  id: string;
-  value: string;
-  isEditing: boolean;
-};
+import type { Action, AppState, Unsubscribe } from '../../shared/ipc';
 
-type Unsubscribe = () => void;
+export type { Action, AppState, Message } from '../../shared/ipc';
 
 const ensureElectronAPI = () => {
   if (!window.electronAPI) {
@@ -16,58 +10,22 @@ const ensureElectronAPI = () => {
   return window.electronAPI;
 };
 
+/** Thin wrapper over `window.electronAPI`, the bridge exposed by the preload. */
 export const windowService = {
-  openEditWindow(payload: EditPayload) {
-    ensureElectronAPI().openNewWindow(payload);
+  getState(): Promise<AppState> {
+    return ensureElectronAPI().getState();
   },
-  syncEditValue(payload: EditPayload) {
-    ensureElectronAPI().updateValue(payload);
+  dispatch(action: Action) {
+    ensureElectronAPI().dispatch(action);
   },
-  closeEditWindow(payload: ClosePayload) {
-    ensureElectronAPI().closeWindow(payload);
+  onStateChanged(callback: (state: AppState) => void): Unsubscribe {
+    return ensureElectronAPI().onStateChanged(callback);
   },
-  requestStartEditing(payload: EditPayload) {
-    ensureElectronAPI().requestStartEditing(payload);
+  /** Opens, or focuses, the window of a resolved route ('/message/abc'). */
+  openWindow(route: string) {
+    ensureElectronAPI().openWindow(route);
   },
-  requestSyncValue(payload: EditPayload) {
-    ensureElectronAPI().requestSyncValue(payload);
-  },
-  requestSaveEditing(payload: EditPayload) {
-    ensureElectronAPI().requestSaveEditing(payload);
-  },
-  requestCancelEditing(payload: EditPayload) {
-    ensureElectronAPI().requestCancelEditing(payload);
-  },
-  requestCurrentValue() {
-    ensureElectronAPI().requestCurrentValue();
-  },
-  notifyEditingState(payload: EditingStatePayload) {
-    ensureElectronAPI().notifyEditingState(payload);
-  },
-  onInitValue(callback: (payload: EditPayload) => void): Unsubscribe {
-    return ensureElectronAPI().onInitValue(callback);
-  },
-  onUpdateValue(callback: (payload: EditPayload) => void): Unsubscribe {
-    return ensureElectronAPI().onUpdateValue(callback);
-  },
-  onEditWindowClosed(callback: (payload: ClosePayload) => void): Unsubscribe {
-    return ensureElectronAPI().onEditWindowClosed(callback);
-  },
-  onEditingStateChange(
-    callback: (payload: EditingStatePayload) => void
-  ): Unsubscribe {
-    return ensureElectronAPI().onEditingStateChange(callback);
-  },
-  onStartEditingRequest(callback: (payload: EditPayload) => void): Unsubscribe {
-    return ensureElectronAPI().onStartEditingRequest(callback);
-  },
-  onSyncValueRequest(callback: (payload: EditPayload) => void): Unsubscribe {
-    return ensureElectronAPI().onSyncValueRequest(callback);
-  },
-  onSaveEditingRequest(callback: (payload: EditPayload) => void): Unsubscribe {
-    return ensureElectronAPI().onSaveEditingRequest(callback);
-  },
-  onCancelEditingRequest(callback: (payload: EditPayload) => void): Unsubscribe {
-    return ensureElectronAPI().onCancelEditingRequest(callback);
+  closeWindow(route: string) {
+    ensureElectronAPI().closeWindow(route);
   },
 };

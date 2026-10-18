@@ -1,68 +1,52 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState, type FormEvent } from 'react';
 import MessageItem from '../components/MessageItem/MessageItem';
-import { useMessageManagement, useWindowManagement } from '../hooks';
+import { useAppStore } from '../hooks';
 import { windowService } from '../services';
-import '../assets/styles/global.css';
-import '../assets/styles/app.css';
+import { hasDraft } from '../../shared/reducer';
+import { buildRoute, ROUTES } from '../../shared/routes';
 
-
-const App: React.FC = () => {
-  const {
-    messages,
-    inputValue,
-    handleInputChange,
-    handleCreateMessage,
-    updateMessage,
-    removeMessage,
-  } = useMessageManagement();
-  const {
-    editingValues,
-    startEditing,
-    startEditingFromRemote,
-    syncEditing,
-    syncEditingFromRemote,
-    finishEditing,
-    finishEditingFromRemote,
-    cancelEditing,
-    cancelEditingFromRemote,
-    closeEditingWindow,
-  } = useWindowManagement();
+/** Main window screen, route `ROUTES.home`. */
+const Home: React.FC = () => {
+  const { state, dispatch } = useAppStore();
+  const [inputValue, setInputValue] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMessage, setModalMessage] = useState('');
 
-  // Abre janela de edição e inicializa slot
-  const handleEditClick = (id: string) => {
-    const message = messages.find((msg) => msg.id === id);
-    if (!message) return;
-    startEditing(id, message.text);
-  };
+  useEffect(() => {
+    document.title = 'Electron Multi Window';
+  }, []);
 
-  // Sincroniza valor enquanto digita
-  const handleEditingSync = (id: string, newValue: string) => {
-    syncEditing(id, newValue);
-  };
-
-  // Salva edição de um slot específico
-  const handleSave = (id: string) => {
-    const editedValue = editingValues[id];
-    if (editedValue === undefined) {
+  const handleCreateMessage = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const value = inputValue.trim();
+    if (!value) {
       return;
     }
-    updateMessage(id, editedValue);
-    finishEditing(id, editedValue);
+    dispatch({ type: 'message/create', value });
+    setInputValue('');
   };
 
-  // Cancela edição de um slot específico
+  // Starts editing and opens (or focuses) the child window of the message.
+  const handleEditClick = (id: string) => {
+    dispatch({ type: 'edit/start', id });
+    windowService.openWindow(buildRoute(ROUTES.message, { id }));
+  };
+
+  const handleEditingChange = (id: string, value: string) => {
+    dispatch({ type: 'edit/draft', id, value });
+  };
+
+  const handleSave = (id: string) => {
+    dispatch({ type: 'edit/save', id });
+  };
+
   const handleCancel = (id: string) => {
-    const message = messages.find((msg) => msg.id === id);
-    if (!message) return;
-    cancelEditing(id, message.text);
+    dispatch({ type: 'edit/cancel', id });
   };
 
-  // Deleta mensagem + limpa qualquer slot aberto
+  // The main process closes the child window of a deleted message.
   const handleDelete = (id: string) => {
-    removeMessage(id);
-    closeEditingWindow(id);
+    dispatch({ type: 'message/delete', id });
   };
 
   // Modal helpers
@@ -85,45 +69,7 @@ const App: React.FC = () => {
     return () => window.removeEventListener('keydown', onKey);
   }, [modalOpen]);
 
-  const messagesRef = useRef(messages);
-
-  useEffect(() => {
-    messagesRef.current = messages;
-  }, [messages]);
-
-  useEffect(() => {
-    const unsubscribeStart = windowService.onStartEditingRequest(({ id, value }) => {
-      startEditingFromRemote(id, value);
-    });
-
-    const unsubscribeSync = windowService.onSyncValueRequest(({ id, value }) => {
-      syncEditingFromRemote(id, value);
-    });
-
-    const unsubscribeSave = windowService.onSaveEditingRequest(({ id, value }) => {
-      updateMessage(id, value);
-      finishEditingFromRemote(id, value);
-    });
-
-    const unsubscribeCancel = windowService.onCancelEditingRequest(({ id, value }) => {
-      const message = messagesRef.current.find((msg) => msg.id === id);
-      const originalValue = message?.text ?? value ?? '';
-      cancelEditingFromRemote(id, originalValue);
-    });
-
-    return () => {
-      unsubscribeStart();
-      unsubscribeSync();
-      unsubscribeSave();
-      unsubscribeCancel();
-    };
-  }, [
-    cancelEditingFromRemote,
-    finishEditingFromRemote,
-    startEditingFromRemote,
-    syncEditingFromRemote,
-    updateMessage,
-  ]);
+  const { messages, editing } = state;
 
   return (
     <div className="app-container">
@@ -133,7 +79,7 @@ const App: React.FC = () => {
           type="text"
           placeholder="Type here."
           value={inputValue}
-          onChange={handleInputChange}
+          onChange={(event) => setInputValue(event.target.value)}
           className="input-field"
         />
         <button type="submit" className="btn-submit">
@@ -159,16 +105,16 @@ const App: React.FC = () => {
                 key={message.id}
                 index={index}
                 message={message}
-                isEditing={message.id in editingValues}
-                editingValue={editingValues[message.id]}
+                isEditing={hasDraft(editing, message.id)}
+                editingValue={editing[message.id]}
                 onEdit={() => handleEditClick(message.id)}
                 onDelete={() => handleDelete(message.id)}
                 onSave={() => handleSave(message.id)}
                 onCancel={() => handleCancel(message.id)}
-                onEditingChange={(event) =>
-                  handleEditingSync(message.id, event.target.value)
+                onEditingChange={(value) =>
+                  handleEditingChange(message.id, value)
                 }
-                onPreview={() => openModal(message.text)}
+                onPreview={() => openModal(message.value)}
               />
             ))}
           </div>
@@ -188,4 +134,4 @@ const App: React.FC = () => {
   );
 };
 
-export default App;
+export default Home;

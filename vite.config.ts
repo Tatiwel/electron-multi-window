@@ -3,6 +3,8 @@ import path from 'node:path';
 import electron from 'vite-plugin-electron/simple';
 import react from '@vitejs/plugin-react';
 
+// The renderer has a single entry, the root index.html; every window loads it
+// with its own hash route (see shared/routes.ts).
 export default defineConfig({
   plugins: [
     react(),
@@ -16,12 +18,4 @@ export default defineConfig({
       renderer: process.env.NODE_ENV === 'test' ? undefined : {},
     }),
   ],
-  build: {
-    rolldownOptions: {
-      input: {
-        main: path.resolve(import.meta.dirname, 'html/index.html'),
-        newWindow: path.resolve(import.meta.dirname, 'html/newWindow.html'),
-      },
-    },
-  },
 });

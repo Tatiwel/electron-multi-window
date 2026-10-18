@@ -18,6 +18,7 @@
 - [About the Project](#-about-the-project)
 - [Key Features](#-key-features)
 - [Architecture](#-architecture)
+- [Adding a new window/screen](#-adding-a-new-windowscreen)
 - [Technologies Used](#️-technologies-used)
 - [Prerequisites](#-prerequisites)
 - [Installation & Usage](#-installation--usage)
@@ -49,18 +50,18 @@ Perfect for developers looking to build sophisticated desktop applications that 
 ### Window Management
 - **Multi-Window Architecture**: Open and manage multiple synchronized child windows from the main window
 - **Real-Time Synchronization**: Instant bidirectional communication between all windows via IPC (Inter-Process Communication)
-- **Window State Tracking**: Robust index management ensures data integrity across window lifecycle events
+- **Window Lifecycle Handling**: Deleting a message closes its window and closing a window discards its draft
 - **Edit Mode**: Edit messages in dedicated child windows with live synchronization back to the main window
 
 ### User Experience
 - **Intuitive Interface**: Clean, responsive UI built with React
-- **Message Management**: Create, edit, and delete messages with UUID-based identification
+- **Message Management**: Create, edit, and delete messages identified by ids generated in the main process
 - **Window Controls**: Open, focus, and close child windows programmatically
 - **Editing State Indication**: Visual feedback when messages are being edited in child windows
 
 ### Technical Excellence
 - **Context Isolation**: Secure IPC communication with proper preload scripts
-- **Custom Hooks**: Reusable React hooks for window and message management
+- **Single Source of Truth**: The main process owns the state; windows dispatch actions and render the state they receive
 - **Service Layer**: Clean abstraction over Electron APIs
 - **Handler Pattern**: Organized IPC handlers for maintainable code
 
@@ -68,50 +69,77 @@ Perfect for developers looking to build sophisticated desktop applications that 
 
 ## 🏗️ Architecture
 
-The application follows a layered architecture pattern:
+The main process is the single source of truth. It holds the whole application state (`electron/store.ts`) and is the only place that changes it: windows never keep their own copy of the messages or of the edit drafts. A renderer dispatches an action (`message/create`, `message/delete`, `edit/start`, `edit/draft`, `edit/save`, `edit/cancel`); the main process validates it, checks that the sender may perform it (a child window may only edit its own message), runs the pure reducer in `shared/reducer.ts` and, when the state changed, broadcasts the new state to every open window. Each window renders from that state: a message is in edit mode exactly when `editing[id]` exists. Window side effects also live in the main process: deleting a message closes its child window, and closing a child window with the X discards its draft, which takes the main window out of edit mode. A child window learns which message it belongs to from its own route, and reads the state on mount, so it can never miss an update sent before it was ready.
+
+### One page, hash routing
+
+There is a single HTML page, `index.html` at the project root, and a single renderer entry, `src/main.tsx`. Every window loads that same page; the hash after `#` says which screen it shows. In development the main process loads `VITE_DEV_SERVER_URL + '#' + route`; in production it loads `dist/index.html` with the route as the hash. `src/pages/Root.tsx` reads the hash through `useHashRoute`, resolves it with `shared/routes.ts` and renders the matching screen, or a minimal "Unknown route" screen.
+
+| Route | Pattern | Screen | Window |
+|-------|---------|--------|--------|
+| `ROUTES.home` | `/` (an empty hash counts as `/`) | `Home` (`src/pages/App.tsx`) | Main window, 800×600 |
+| `ROUTES.message` | `/message/:id` | `MessageWindow` (`src/pages/MessageWindow.tsx`) | Edit window of message `id`, 600×400 |
+
+The main process keeps the child windows in a map keyed by their route, so opening a route that is already open focuses its window. `window:open` is accepted only from the main window and only for a route that resolves and is not `/` (the main window is never opened twice); `/message/:id` also needs an existing message. `window:close` is accepted from the main window for any route, or from a child for its own route. A child window may only edit the message whose id is in its route.
+
+### IPC channels
+
+| Channel | Direction | Payload |
+|---------|-----------|---------|
+| `store:get` | renderer → main (invoke) | — → `AppState` |
+| `store:dispatch` | renderer → main | `Action` |
+| `store:changed` | main → every renderer | `AppState` |
+| `window:open` | main window → main | `{ route }`, e.g. `{ route: '/message/abc' }` (opens or focuses the window of that route) |
+| `window:close` | renderer → main | `{ route }` |
+
+### Shared (`shared/`)
+- **`ipc.ts`**: `AppState`, `Action`, channel names, the `isAction` and `isWindowRoutePayload` guards and the `ElectronAPI` interface exposed by the preload script
+- **`routes.ts`**: `ROUTES`, `matchRoute`, `resolveRoute` and `buildRoute`, dependency free
+- **`reducer.ts`**: Pure `(state, action) => state` transition, imported by the main process
 
 ### Main Process (`electron/`)
-- **`main.ts`**: Application entry point, window lifecycle management
-- **`handlers/windowHandlers.ts`**: IPC communication handlers for window operations
-- **`preload.ts`**: Secure bridge between main and renderer processes
+- **`main.ts`**: Application entry point, creates the store and the main window (`dist/index.html`, route `/`)
+- **`store.ts`**: `createStore`: holds the state, applies the reducer, generates ids and broadcasts `store:changed`
+- **`handlers/windowHandlers.ts`**: IPC handlers: validation, sender authorization, child windows keyed by route, `windowOptions` per screen and `loadRoute`
+- **`preload.ts`**: Exposes `getState`, `dispatch`, `onStateChanged`, `openWindow` and `closeWindow` as `window.electronAPI`
 
 ### Renderer Process (`src/`)
 
 #### **Services Layer** (`src/services/`)
-- **`windowService.ts`**: Abstraction layer for window-related IPC operations
-- Provides type-safe interfaces for all window operations
-- Handles validation and error checking
+- **`windowService.ts`**: Thin wrapper over `window.electronAPI` with the same five methods; `openWindow(route)` and `closeWindow(route)` take a resolved route
 
 #### **Hooks Layer** (`src/hooks/`)
-- **`useWindowManagement.ts`**: React hook for managing window state and operations
-- **`useMessageManagement.ts`**: React hook for message CRUD operations
-- Encapsulates business logic and state management
+- **`useAppStore.ts`**: Subscribes to `store:changed`, fetches the state on mount and returns `{ state, dispatch }`
+- **`useDraftInput.ts`**: Local value for an edit input: the typing window never waits for the main process, and store values from other windows still come through
+- **`useHashRoute.ts`**: Reads `location.hash`, follows `hashchange` and returns the resolved route, or `null` for an unknown one
 
 #### **Components Layer** (`src/components/`)
-- **`MessageItem/`**: Reusable message display component
-- Modular, testable UI components
+- **`MessageItem/`**: Reusable message row component
 
 #### **Pages Layer** (`src/pages/`)
-- **`App.tsx`**: Main window application logic
-- **`newWindow.tsx`**: Child window application logic
+- **`Root.tsx`**: Picks the screen from the hash route
+- **`App.tsx`**: `Home`, the main window screen
+- **`MessageWindow.tsx`**: Child (edit) window screen, receives the message id from the route
 
 ### Communication Flow
 
 ```
-Main Window (App.tsx)
-    ↓ (User Action)
-useWindowManagement Hook
-    ↓ (Business Logic)
-windowService
-    ↓ (IPC Call)
-electronAPI (preload.ts)
-    ↓ (IPC Channel)
-windowHandlers.ts (main process)
-    ↓ (Window Management)
-Child Window (newWindow.tsx)
-    ↓ (Sync Back)
-[Bidirectional Communication Loop]
+Main or child window
+    ↓ dispatch(action)            windowService → electronAPI (preload)
+store:dispatch
+    ↓ isAction + sender authorization
+windowHandlers.ts → store.dispatch → reducer
+    ↓ state changed?
+store:changed (whole AppState) → every open window re-renders
 ```
+
+---
+
+## 🧩 Adding a new window/screen
+
+1. **Create the component** in `src/pages/`, set `document.title` in a `useEffect`, and render it from `src/pages/Root.tsx` for its pattern.
+2. **Register the route** in `ROUTES` (`shared/routes.ts`), e.g. `settings: '/settings'`. If the window needs its own size or other `BrowserWindow` options, add an entry for the pattern to `windowOptions` in `electron/handlers/windowHandlers.ts`.
+3. **Open it** with `windowService.openWindow(buildRoute(ROUTES.settings))` from wherever it makes sense (the main window is the only one allowed to open windows). Opening a route that is already open focuses its window.
 
 ---
 
@@ -132,9 +160,6 @@ Child Window (newWindow.tsx)
 - **[Husky](https://typicode.github.io/husky/)** ^9.1.7 - Git hooks for pre-commit validation
 - **[Commitlint](https://commitlint.js.org/)** ^21.2.3 - Enforce conventional commit messages
 - **[Bun](https://bun.sh/)** - Package manager and script runner for the project
-
-### Utilities
-- **[UUID](https://github.com/uuidjs/uuid)** ^14.0.3 - Unique identifier generation
 
 ---
 
@@ -173,7 +198,7 @@ This will:
 2. Build the Vite project
 3. Package the Electron application with electron-builder
 
-Built applications will be available in the `dist/` directory.
+Packaged applications will be available in the `release/<version>/` directory (for example `release/2.0.0/`).
 
 ---
 
@@ -191,13 +216,15 @@ electron-multi-window/
 ├── demo/                       # Demo GIFs and screenshots
 ├── electron/                   # Electron main process
 │   ├── handlers/              # IPC handlers
-│   │   └── windowHandlers.ts # Window management IPC logic
+│   │   └── windowHandlers.ts # Validation, authorization and child window lifecycle
 │   ├── main.ts                # Main process entry point
+│   ├── store.ts               # Application state store (single source of truth)
 │   ├── preload.ts             # Preload script for secure IPC
 │   └── electron-env.d.ts      # TypeScript definitions
-├── html/                       # HTML entry points
-│   ├── index.html             # Main window HTML
-│   └── newWindow.html         # Child window HTML
+├── shared/                     # Code imported by both processes
+│   ├── ipc.ts                 # State and action types, channel names, guards and the electronAPI contract
+│   ├── reducer.ts             # Pure state transition
+│   └── routes.ts              # Hash routes: ROUTES, matchRoute, resolveRoute, buildRoute
 ├── public/                     # Static assets
 │   ├── electron-vite.svg
 │   ├── react.svg
@@ -207,21 +234,25 @@ electron-multi-window/
 │   ├── components/            # Reusable React components
 │   │   └── MessageItem/       # Message item component
 │   ├── hooks/                 # Custom React hooks
-│   │   ├── useMessageManagement.ts
-│   │   ├── useWindowManagement.ts
+│   │   ├── useAppStore.ts     # Mirror of the main-process state
+│   │   ├── useDraftInput.ts   # Local value for the edit inputs
+│   │   ├── useHashRoute.ts    # Route of this window, from location.hash
 │   │   └── index.ts
-│   ├── pages/                 # Page components
-│   │   ├── App.tsx            # Main window page
-│   │   └── newWindow.tsx      # Child window page
+│   ├── pages/                 # Screens
+│   │   ├── Root.tsx           # Renders the screen of the hash route
+│   │   ├── App.tsx            # Home (main window)
+│   │   └── MessageWindow.tsx  # Edit window of one message
 │   ├── services/              # Service layer
 │   │   ├── windowService.ts   # Window operations service
 │   │   └── index.ts
-│   ├── main.tsx               # React entry point (main window)
+│   ├── main.tsx               # The only React entry point, renders Root
 │   └── vite-env.d.ts          # Vite TypeScript definitions
+├── tests/e2e/                  # Playwright end-to-end tests (run against the build)
 ├── .commitlintrc.cjs           # Commitlint configuration
 ├── eslint.config.js            # ESLint configuration (flat config)
 ├── .gitignore                  # Git ignore rules
 ├── electron-builder.json5      # Electron builder config
+├── index.html                  # The single HTML page loaded by every window
 ├── package.json                # Project metadata and scripts
 ├── tsconfig.json               # TypeScript configuration
 ├── tsconfig.node.json          # TypeScript config for Node
@@ -241,6 +272,7 @@ electron-multi-window/
 | `bun run preview` | Preview the built application |
 | `bun run test:e2e` | Build the app and run the Playwright end-to-end tests |
 | `bun run test:e2e:ui` | Build the app and open the Playwright UI runner |
+| `bun run test:e2e:headless` | Run the e2e tests under Xvfb, isolating Electron from the desktop session (Wayland) |
 
 ---
 
@@ -334,8 +366,8 @@ This sets up:
 </p>
 
 **Technical Highlights:**
-- Each window has a unique UUID identifier
-- Window state is tracked in both main and renderer processes
+- Each child window is bound to one route, `/message/<id>`
+- The state lives in the main process only; windows render what they receive
 - Proper cleanup when windows are closed
 - Prevents race conditions and data corruption
 - Safe handling of window lifecycle events

@@ -3,8 +3,13 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import {
   closeAllChildWindows,
+  loadRoute,
   registerWindowHandlers,
+  windowOptions,
 } from './handlers/windowHandlers';
+import { createStore } from './store';
+import { initialState } from '../shared/reducer';
+import { ROUTES } from '../shared/routes';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 process.env.APP_ROOT = path.join(__dirname, '..');
@@ -18,17 +23,20 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
 
 let mainWindow: BrowserWindow | null = null;
 
+// The main process is the single source of truth for the application state.
+const store = createStore(initialState);
+
 registerWindowHandlers({
   preloadPath: path.join(__dirname, 'preload.mjs'),
   devServerUrl: VITE_DEV_SERVER_URL,
   rendererDist: RENDERER_DIST,
   getMainWindow: () => mainWindow,
+  store,
 });
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+    ...windowOptions[ROUTES.home],
     icon: path.join(process.env.VITE_PUBLIC, 'electron-vite.svg'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.mjs'),
@@ -37,17 +45,8 @@ function createWindow() {
     },
   });
 
-  if (VITE_DEV_SERVER_URL) {
-    const devEntryUrl = new URL(
-      'html/index.html',
-      VITE_DEV_SERVER_URL.endsWith('/')
-        ? VITE_DEV_SERVER_URL
-        : `${VITE_DEV_SERVER_URL}/`
-    ).toString();
-    mainWindow.loadURL(devEntryUrl);
-  } else {
-    mainWindow.loadFile(path.join(RENDERER_DIST, 'html', 'index.html'));
-  }
+  // dist/index.html (or the dev server) with the home route in the hash.
+  void loadRoute(mainWindow, ROUTES.home, VITE_DEV_SERVER_URL, RENDERER_DIST);
 
   mainWindow.on('closed', () => {
     mainWindow = null;
