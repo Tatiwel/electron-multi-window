@@ -2,6 +2,7 @@ import React, { useEffect, useState, type FormEvent } from 'react';
 import MessageItem from '../components/MessageItem/MessageItem';
 import { useAppStore } from '../hooks';
 import { windowService } from '../services';
+import { hasDraft } from '../../shared/reducer';
 import '../assets/styles/global.css';
 import '../assets/styles/app.css';
 
@@ -100,7 +101,7 @@ const App: React.FC = () => {
                 key={message.id}
                 index={index}
                 message={message}
-                isEditing={message.id in editing}
+                isEditing={hasDraft(editing, message.id)}
                 editingValue={editing[message.id]}
                 onEdit={() => handleEditClick(message.id)}
                 onDelete={() => handleDelete(message.id)}

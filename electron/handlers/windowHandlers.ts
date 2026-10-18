@@ -8,6 +8,7 @@ import {
   type AppState,
   type WindowContext,
 } from '../../shared/ipc';
+import { hasDraft } from '../../shared/reducer';
 import type { Store } from '../store';
 
 interface RegisterWindowHandlersOptions {
@@ -131,7 +132,7 @@ export const registerWindowHandlers = (
     // window out of edit mode.
     childWindow.on('closed', () => {
       forgetIfOwner();
-      if (id in store.getState().editing) {
+      if (hasDraft(store.getState().editing, id)) {
         store.dispatch({ type: 'edit/cancel', id });
       }
     });

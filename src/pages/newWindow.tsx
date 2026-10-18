@@ -2,6 +2,7 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import ReactDOM from 'react-dom/client';
 import { useAppStore, useDraftInput } from '../hooks';
 import { windowService } from '../services';
+import { hasDraft } from '../../shared/reducer';
 import EditIcon from '../assets/icons/edit-icon.svg';
 import SaveIcon from '../assets/icons/save-icon.svg';
 import CancelIcon from '../assets/icons/cancel-icon.svg';
@@ -42,7 +43,10 @@ const NewWindow: React.FC = () => {
       ? undefined
       : state.messages.find((item) => item.id === messageId);
   const userMessage = message?.value ?? '';
-  const storeDraft = messageId === null ? undefined : state.editing[messageId];
+  const storeDraft =
+    messageId !== null && hasDraft(state.editing, messageId)
+      ? state.editing[messageId]
+      : undefined;
   const isEditing = storeDraft !== undefined;
 
   const draft = useDraftInput(storeDraft ?? '', (value) => {

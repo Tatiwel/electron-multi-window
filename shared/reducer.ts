@@ -14,6 +14,13 @@ export type ReducerAction =
 const hasMessage = (state: AppState, id: string) =>
   state.messages.some((message) => message.id === id);
 
+/**
+ * Whether a draft exists for `id`. An own-property check, so ids that happen
+ * to be `Object.prototype` keys (`toString`, `constructor`) are unknown.
+ */
+export const hasDraft = (editing: AppState['editing'], id: string) =>
+  Object.prototype.hasOwnProperty.call(editing, id);
+
 const withoutDraft = (editing: AppState['editing'], id: string) => {
   const { [id]: _removed, ...rest } = editing;
   return rest;
@@ -47,7 +54,7 @@ export const reducer = (state: AppState, action: ReducerAction): AppState => {
     }
     case 'edit/start': {
       const message = state.messages.find((item) => item.id === action.id);
-      if (!message || action.id in state.editing) {
+      if (!message || hasDraft(state.editing, action.id)) {
         return state;
       }
       return {
@@ -57,7 +64,7 @@ export const reducer = (state: AppState, action: ReducerAction): AppState => {
     }
     case 'edit/draft': {
       if (
-        !(action.id in state.editing) ||
+        !hasDraft(state.editing, action.id) ||
         state.editing[action.id] === action.value
       ) {
         return state;
@@ -68,7 +75,7 @@ export const reducer = (state: AppState, action: ReducerAction): AppState => {
       };
     }
     case 'edit/save': {
-      if (!(action.id in state.editing)) {
+      if (!hasDraft(state.editing, action.id)) {
         return state;
       }
       const value = state.editing[action.id];
@@ -80,7 +87,7 @@ export const reducer = (state: AppState, action: ReducerAction): AppState => {
       };
     }
     case 'edit/cancel': {
-      if (!(action.id in state.editing)) {
+      if (!hasDraft(state.editing, action.id)) {
         return state;
       }
       return { ...state, editing: withoutDraft(state.editing, action.id) };
