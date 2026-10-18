@@ -31,11 +31,12 @@ export const windowService = {
   onStateChanged(callback: (state: AppState) => void): Unsubscribe {
     return ensureElectronAPI().onStateChanged(callback);
   },
-  openWindow(id: string) {
-    ensureElectronAPI().openWindow(id);
+  /** Opens, or focuses, the window of a resolved route ('/message/abc'). */
+  openWindow(route: string) {
+    ensureElectronAPI().openWindow(route);
   },
-  closeWindow(id: string) {
-    ensureElectronAPI().closeWindow(id);
+  closeWindow(route: string) {
+    ensureElectronAPI().closeWindow(route);
   },
   getWindowContext(): Promise<WindowContext | null> {
     return ensureElectronAPI().getWindowContext();

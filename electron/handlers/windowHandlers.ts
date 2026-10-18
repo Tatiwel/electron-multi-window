@@ -3,12 +3,13 @@ import path from 'node:path';
 import {
   IPC,
   isAction,
-  isMessageId,
+  isWindowRoutePayload,
   type Action,
   type AppState,
   type WindowContext,
 } from '../../shared/ipc';
 import { hasDraft } from '../../shared/reducer';
+import { resolveRoute, ROUTES } from '../../shared/routes';
 import type { Store } from '../store';
 
 interface RegisterWindowHandlersOptions {
@@ -34,6 +35,15 @@ const buildNewWindowUrl = (
   }
 
   return path.join(rendererDist, 'html', 'newWindow.html');
+};
+
+// Message id of a '/message/:id' route payload, or null.
+const messageIdOf = (payload: unknown) => {
+  if (!isWindowRoutePayload(payload)) {
+    return null;
+  }
+  const resolved = resolveRoute(payload.route);
+  return resolved?.pattern === ROUTES.message ? resolved.params.id : null;
 };
 
 const hasMessage = (state: AppState, id: string) =>
@@ -181,10 +191,11 @@ export const registerWindowHandlers = (
     return messageId === null ? null : { messageId };
   });
 
-  ipcMain.on(IPC.WINDOW_OPEN, (event, id: unknown) => {
+  ipcMain.on(IPC.WINDOW_OPEN, (event, payload: unknown) => {
+    const id = messageIdOf(payload);
     if (
       !isMainSender(event.sender) ||
-      !isMessageId(id) ||
+      id === null ||
       !hasMessage(store.getState(), id)
     ) {
       return;
@@ -192,8 +203,9 @@ export const registerWindowHandlers = (
     void openChildWindow(id);
   });
 
-  ipcMain.on(IPC.WINDOW_CLOSE, (event, id: unknown) => {
-    if (!isMessageId(id)) {
+  ipcMain.on(IPC.WINDOW_CLOSE, (event, payload: unknown) => {
+    const id = messageIdOf(payload);
+    if (id === null) {
       return;
     }
     const isOwnWindow = findChildIdBySender(event.sender) === id;

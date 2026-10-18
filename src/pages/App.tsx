@@ -3,6 +3,7 @@ import MessageItem from '../components/MessageItem/MessageItem';
 import { useAppStore } from '../hooks';
 import { windowService } from '../services';
 import { hasDraft } from '../../shared/reducer';
+import { buildRoute, ROUTES } from '../../shared/routes';
 import '../assets/styles/global.css';
 import '../assets/styles/app.css';
 
@@ -25,7 +26,7 @@ const App: React.FC = () => {
   // Starts editing and opens (or focuses) the child window of the message.
   const handleEditClick = (id: string) => {
     dispatch({ type: 'edit/start', id });
-    windowService.openWindow(id);
+    windowService.openWindow(buildRoute(ROUTES.message, { id }));
   };
 
   const handleEditingChange = (id: string, value: string) => {
