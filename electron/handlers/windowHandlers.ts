@@ -1,20 +1,14 @@
-import { BrowserWindow, ipcMain } from 'electron';
+import { BrowserWindow, ipcMain, type WebContents } from 'electron';
 import path from 'node:path';
-
-interface EditPayload {
-  id: string;
-  value: string;
-}
-
-interface ClosePayload {
-  id: string;
-}
-
-interface EditingStatePayload {
-  id: string;
-  value: string;
-  isEditing: boolean;
-}
+import {
+  IPC,
+  isClosePayload,
+  isEditPayload,
+  isEditingStatePayload,
+  type ClosePayload,
+  type EditPayload,
+  type IpcChannel,
+} from '../../shared/ipc';
 
 interface RegisterWindowHandlersOptions {
   preloadPath: string;
@@ -54,26 +48,53 @@ export const registerWindowHandlers = (
 
   const maybeNotifyMainWindow = (payload: ClosePayload) => {
     const mainWindow = getMainWindow();
-    mainWindow?.webContents.send('edit-window-closed', payload);
+    mainWindow?.webContents.send(IPC.EDIT_WINDOW_CLOSED, payload);
   };
 
-  const forwardToMainWindow = (channel: string) => {
-    ipcMain.on(channel, (_event, payload: EditPayload) => {
+  const findChildIdBySender = (sender: WebContents) => {
+    for (const [id, win] of windows.entries()) {
+      if (win.webContents === sender) {
+        return id;
+      }
+    }
+    return null;
+  };
+
+  // Only the main window and the child windows this module created may talk
+  // to these handlers.
+  const isKnownSender = (event: { sender: WebContents }) =>
+    getMainWindow()?.webContents === event.sender ||
+    findChildIdBySender(event.sender) !== null;
+
+  const forwardToMainWindow = (channel: IpcChannel) => {
+    ipcMain.on(channel, (event, payload: unknown) => {
+      if (!isKnownSender(event) || !isEditPayload(payload)) {
+        return;
+      }
       const mainWindow = getMainWindow();
       windowValues.set(payload.id, payload.value);
       mainWindow?.webContents.send(channel, payload);
     });
   };
 
-  ipcMain.on('open-new-window', async (_event, payload: EditPayload) => {
+  ipcMain.on(IPC.OPEN_NEW_WINDOW, async (event, payload: unknown) => {
+    if (!isKnownSender(event) || !isEditPayload(payload)) {
+      return;
+    }
     const { id } = payload;
 
     const existingWindow = windows.get(id);
-    if (existingWindow) {
+    if (existingWindow && !existingWindow.isDestroyed()) {
       existingWindow.focus();
       windowValues.set(id, payload.value);
-      existingWindow.webContents.send('update-value', payload);
+      existingWindow.webContents.send(IPC.UPDATE_VALUE, payload);
       return;
+    }
+    if (existingWindow) {
+      // Stale entry: the window was destroyed without its 'closed' handler
+      // cleaning up. Drop it and create a fresh one.
+      windows.delete(id);
+      windowValues.delete(id);
     }
 
     const childWindow = new BrowserWindow({
@@ -89,72 +110,97 @@ export const registerWindowHandlers = (
     windows.set(id, childWindow);
     windowValues.set(id, payload.value);
 
-    const urlOrPath = buildNewWindowUrl(devServerUrl, rendererDist);
+    // Only drop the map entries if this window still owns the id, so a late
+    // callback from an old window cannot evict a replacement with the same id.
+    const forgetIfOwner = () => {
+      if (windows.get(id) === childWindow) {
+        windows.delete(id);
+        windowValues.delete(id);
+      }
+    };
 
-    if (devServerUrl) {
-      await childWindow.loadURL(urlOrPath);
-    } else {
-      await childWindow.loadFile(urlOrPath);
-    }
-
-    childWindow.webContents.send('init-value', payload);
-
+    // Registered before loading so a window closed mid-load is still cleaned up.
     childWindow.on('closed', () => {
-      windows.delete(id);
-      windowValues.delete(id);
+      forgetIfOwner();
       maybeNotifyMainWindow({ id });
       options.onChildWindowClosed?.(id);
     });
+
+    const urlOrPath = buildNewWindowUrl(devServerUrl, rendererDist);
+
+    try {
+      if (devServerUrl) {
+        await childWindow.loadURL(urlOrPath);
+      } else {
+        await childWindow.loadFile(urlOrPath);
+      }
+    } catch (error) {
+      console.error(`Failed to load the edit window for ${id}:`, error);
+      if (!childWindow.isDestroyed()) {
+        childWindow.close();
+      }
+      forgetIfOwner();
+      return;
+    }
+
+    if (childWindow.isDestroyed()) {
+      return;
+    }
+
+    childWindow.webContents.send(IPC.INIT_VALUE, payload);
   });
 
-  ipcMain.on('update-value', (_event, payload: EditPayload) => {
+  ipcMain.on(IPC.UPDATE_VALUE, (event, payload: unknown) => {
+    if (!isKnownSender(event) || !isEditPayload(payload)) {
+      return;
+    }
     const { id } = payload;
     windowValues.set(id, payload.value);
     const childWindow = windows.get(id);
     if (childWindow) {
-      childWindow.webContents.send('update-value', payload);
+      childWindow.webContents.send(IPC.UPDATE_VALUE, payload);
     }
   });
 
-  ipcMain.on('child-request-current-value', (event) => {
-    const sender = event.sender;
-    let targetId: string | null = null;
-    for (const [id, win] of windows.entries()) {
-      if (win.webContents === sender) {
-        targetId = id;
-        break;
-      }
+  ipcMain.handle(IPC.GET_CURRENT_VALUE, (event): EditPayload | null => {
+    const id = findChildIdBySender(event.sender);
+    if (id === null) {
+      return null;
     }
+    return { id, value: windowValues.get(id) ?? '' };
+  });
 
-    if (!targetId) {
+  ipcMain.on(IPC.CLOSE_WINDOW, (event, payload: unknown) => {
+    if (!isKnownSender(event) || !isClosePayload(payload)) {
       return;
     }
-
-    const value = windowValues.get(targetId) ?? '';
-    sender.send('init-value', { id: targetId, value });
-  });
-
-  ipcMain.on('close-window', (_event, payload: ClosePayload) => {
     const { id } = payload;
     const childWindow = windows.get(id);
     childWindow?.close();
   });
 
-  forwardToMainWindow('child-request-edit');
-  forwardToMainWindow('child-sync-edit-value');
-  forwardToMainWindow('child-save-edit');
-  forwardToMainWindow('child-cancel-edit');
+  forwardToMainWindow(IPC.CHILD_REQUEST_EDIT);
+  forwardToMainWindow(IPC.CHILD_SYNC_EDIT_VALUE);
+  forwardToMainWindow(IPC.CHILD_SAVE_EDIT);
+  forwardToMainWindow(IPC.CHILD_CANCEL_EDIT);
 
-  ipcMain.on('notify-editing-state', (_event, payload: EditingStatePayload) => {
+  ipcMain.on(IPC.NOTIFY_EDITING_STATE, (event, payload: unknown) => {
+    if (!isKnownSender(event) || !isEditingStatePayload(payload)) {
+      return;
+    }
     const { id } = payload;
     const childWindow = windows.get(id);
     windowValues.set(id, payload.value);
-    childWindow?.webContents.send('editing-state-changed', payload);
+    childWindow?.webContents.send(IPC.EDITING_STATE_CHANGED, payload);
   });
 };
 
 export const closeAllChildWindows = () => {
-  windows.forEach((win) => win.close());
+  windows.forEach((win) => {
+    if (!win.isDestroyed()) {
+      win.close();
+    }
+  });
   windows.clear();
   windowValues.clear();
 };

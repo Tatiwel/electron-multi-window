@@ -1,7 +1,7 @@
 {
   "name": "electron-multi-window",
   "private": true,
-  "version": "1.1.0",
+  "version": "1.2.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "prepare": "husky",
     "test:e2e": "vite build && playwright test",
-    "test:e2e:ui": "vite build && playwright test --ui"
+    "test:e2e:ui": "vite build && playwright test --ui",
+    "test:e2e:headless": "env -u WAYLAND_DISPLAY XDG_SESSION_TYPE=x11 xvfb-run -a bun run test:e2e"
   },
   "dependencies": {
     "react": "^19.3.0",

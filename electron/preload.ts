@@ -1,9 +1,17 @@
 import { contextBridge, ipcRenderer } from 'electron';
+import {
+  IPC,
+  type ClosePayload,
+  type EditPayload,
+  type EditingStatePayload,
+  type ElectronAPI,
+  type IpcChannel,
+} from '../shared/ipc';
 
-type EditPayload = { id: string; value: string };
-type ClosePayload = { id: string };
-
-const exposeListener = <T>(channel: string, callback: (payload: T) => void) => {
+const exposeListener = <T>(
+  channel: IpcChannel,
+  callback: (payload: T) => void
+) => {
   const listener = (_event: Electron.IpcRendererEvent, payload: T) => {
     callback(payload);
   };
@@ -15,47 +23,37 @@ const exposeListener = <T>(channel: string, callback: (payload: T) => void) => {
   };
 };
 
-contextBridge.exposeInMainWorld('electronAPI', {
-  openNewWindow: (payload: EditPayload) =>
-    ipcRenderer.send('open-new-window', payload),
-  updateValue: (payload: EditPayload) =>
-    ipcRenderer.send('update-value', payload),
-  closeWindow: (payload: ClosePayload) =>
-    ipcRenderer.send('close-window', payload),
-  requestStartEditing: (payload: EditPayload) =>
-    ipcRenderer.send('child-request-edit', payload),
-  requestSyncValue: (payload: EditPayload) =>
-    ipcRenderer.send('child-sync-edit-value', payload),
-  requestSaveEditing: (payload: EditPayload) =>
-    ipcRenderer.send('child-save-edit', payload),
-  requestCancelEditing: (payload: EditPayload) =>
-    ipcRenderer.send('child-cancel-edit', payload),
-  requestCurrentValue: () => ipcRenderer.send('child-request-current-value'),
-  notifyEditingState: (payload: {
-    id: string
-    value: string
-    isEditing: boolean
-  }) => ipcRenderer.send('notify-editing-state', payload),
-  onInitValue: (callback: (payload: EditPayload) => void) =>
-    exposeListener<EditPayload>('init-value', callback),
-  onUpdateValue: (callback: (payload: EditPayload) => void) =>
-    exposeListener<EditPayload>('update-value', callback),
-  onEditWindowClosed: (callback: (payload: ClosePayload) => void) =>
-    exposeListener<ClosePayload>('edit-window-closed', callback),
-  onEditingStateChange: (
-    callback: (payload: {
-      id: string
-      value: string
-      isEditing: boolean
-    }) => void
-  ) =>
-    exposeListener('editing-state-changed', callback),
-  onStartEditingRequest: (callback: (payload: EditPayload) => void) =>
-    exposeListener<EditPayload>('child-request-edit', callback),
-  onSyncValueRequest: (callback: (payload: EditPayload) => void) =>
-    exposeListener<EditPayload>('child-sync-edit-value', callback),
-  onSaveEditingRequest: (callback: (payload: EditPayload) => void) =>
-    exposeListener<EditPayload>('child-save-edit', callback),
-  onCancelEditingRequest: (callback: (payload: EditPayload) => void) =>
-    exposeListener<EditPayload>('child-cancel-edit', callback),
-});
+const electronAPI: ElectronAPI = {
+  openNewWindow: (payload) => ipcRenderer.send(IPC.OPEN_NEW_WINDOW, payload),
+  updateValue: (payload) => ipcRenderer.send(IPC.UPDATE_VALUE, payload),
+  closeWindow: (payload) => ipcRenderer.send(IPC.CLOSE_WINDOW, payload),
+  requestStartEditing: (payload) =>
+    ipcRenderer.send(IPC.CHILD_REQUEST_EDIT, payload),
+  requestSyncValue: (payload) =>
+    ipcRenderer.send(IPC.CHILD_SYNC_EDIT_VALUE, payload),
+  requestSaveEditing: (payload) =>
+    ipcRenderer.send(IPC.CHILD_SAVE_EDIT, payload),
+  requestCancelEditing: (payload) =>
+    ipcRenderer.send(IPC.CHILD_CANCEL_EDIT, payload),
+  getCurrentValue: () => ipcRenderer.invoke(IPC.GET_CURRENT_VALUE),
+  notifyEditingState: (payload) =>
+    ipcRenderer.send(IPC.NOTIFY_EDITING_STATE, payload),
+  onInitValue: (callback) =>
+    exposeListener<EditPayload>(IPC.INIT_VALUE, callback),
+  onUpdateValue: (callback) =>
+    exposeListener<EditPayload>(IPC.UPDATE_VALUE, callback),
+  onEditWindowClosed: (callback) =>
+    exposeListener<ClosePayload>(IPC.EDIT_WINDOW_CLOSED, callback),
+  onEditingStateChange: (callback) =>
+    exposeListener<EditingStatePayload>(IPC.EDITING_STATE_CHANGED, callback),
+  onStartEditingRequest: (callback) =>
+    exposeListener<EditPayload>(IPC.CHILD_REQUEST_EDIT, callback),
+  onSyncValueRequest: (callback) =>
+    exposeListener<EditPayload>(IPC.CHILD_SYNC_EDIT_VALUE, callback),
+  onSaveEditingRequest: (callback) =>
+    exposeListener<EditPayload>(IPC.CHILD_SAVE_EDIT, callback),
+  onCancelEditingRequest: (callback) =>
+    exposeListener<EditPayload>(IPC.CHILD_CANCEL_EDIT, callback),
+};
+
+contextBridge.exposeInMainWorld('electronAPI', electronAPI);

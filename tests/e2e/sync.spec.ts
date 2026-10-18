@@ -257,8 +257,24 @@ test('closing the main window closes all children and quits', async ({
   const firstChild = await openChildWindow(app, main, 0);
   const secondChild = await openChildWindow(app, main, 1);
 
+  if (process.platform === 'darwin') {
+    // On macOS `window-all-closed` does not quit the app by design: every
+    // window closes but the process stays alive.
+    await main.close();
+    await expect.poll(() => app.windows().length).toBe(0);
+    expect(firstChild.isClosed()).toBe(true);
+    expect(secondChild.isClosed()).toBe(true);
+
+    const openWindows = await app.evaluate(({ BrowserWindow }) =>
+      BrowserWindow.getAllWindows().length
+    );
+    expect(openWindows).toBe(0);
+    return;
+  }
+
   const appClosed = app.waitForEvent('close');
   await main.close();
+  await expect.poll(() => app.windows().length).toBe(0);
   await appClosed;
 
   expect(firstChild.isClosed()).toBe(true);
