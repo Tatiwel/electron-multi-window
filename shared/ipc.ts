@@ -25,9 +25,6 @@ export type Action =
 
 export type ActionType = Action['type'];
 
-/** What a child window learns about itself from the main process. */
-export type WindowContext = { messageId: string };
-
 /**
  * Payload of `WINDOW_OPEN` and `WINDOW_CLOSE`: an already resolved route,
  * such as '/message/abc'. See `shared/routes.ts`.
@@ -46,8 +43,6 @@ export const IPC = {
   // renderer -> main
   WINDOW_OPEN: 'window:open',
   WINDOW_CLOSE: 'window:close',
-  // renderer -> main (invoke/handle)
-  WINDOW_CONTEXT: 'window:context',
 } as const;
 
 export type IpcChannel = (typeof IPC)[keyof typeof IPC];
@@ -62,8 +57,6 @@ export interface ElectronAPI {
   openWindow: (route: string) => void;
   /** Closes the child window of the given route. */
   closeWindow: (route: string) => void;
-  /** Resolves with the message this (child) window belongs to, or null. */
-  getWindowContext: () => Promise<WindowContext | null>;
 }
 
 // Runtime guards for payloads coming over IPC. Kept deliberately small; the

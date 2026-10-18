@@ -1,16 +1,6 @@
-import type {
-  Action,
-  AppState,
-  Unsubscribe,
-  WindowContext,
-} from '../../shared/ipc';
+import type { Action, AppState, Unsubscribe } from '../../shared/ipc';
 
-export type {
-  Action,
-  AppState,
-  Message,
-  WindowContext,
-} from '../../shared/ipc';
+export type { Action, AppState, Message } from '../../shared/ipc';
 
 const ensureElectronAPI = () => {
   if (!window.electronAPI) {
@@ -37,8 +27,5 @@ export const windowService = {
   },
   closeWindow(route: string) {
     ensureElectronAPI().closeWindow(route);
-  },
-  getWindowContext(): Promise<WindowContext | null> {
-    return ensureElectronAPI().getWindowContext();
   },
 };

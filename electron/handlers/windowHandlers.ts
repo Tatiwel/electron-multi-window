@@ -11,7 +11,6 @@ import {
   isWindowRoutePayload,
   type Action,
   type AppState,
-  type WindowContext,
 } from '../../shared/ipc';
 import { hasDraft } from '../../shared/reducer';
 import {
@@ -225,12 +224,6 @@ export const registerWindowHandlers = (
         closeChildWindow(route);
       }
     }
-  });
-
-  ipcMain.handle(IPC.WINDOW_CONTEXT, (event): WindowContext | null => {
-    const route = findChildRouteBySender(event.sender);
-    const messageId = route === null ? null : messageIdOfRoute(route);
-    return messageId === null ? null : { messageId };
   });
 
   ipcMain.on(IPC.WINDOW_OPEN, (event, payload: unknown) => {

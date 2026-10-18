@@ -4,14 +4,17 @@ import { useAppStore } from '../hooks';
 import { windowService } from '../services';
 import { hasDraft } from '../../shared/reducer';
 import { buildRoute, ROUTES } from '../../shared/routes';
-import '../assets/styles/global.css';
-import '../assets/styles/app.css';
 
-const App: React.FC = () => {
+/** Main window screen, route `ROUTES.home`. */
+const Home: React.FC = () => {
   const { state, dispatch } = useAppStore();
   const [inputValue, setInputValue] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMessage, setModalMessage] = useState('');
+
+  useEffect(() => {
+    document.title = 'Electron Multi Window';
+  }, []);
 
   const handleCreateMessage = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -131,4 +134,4 @@ const App: React.FC = () => {
   );
 };
 
-export default App;
+export default Home;
