@@ -332,3 +332,23 @@ test('closing the child with the X reverts the edit started in the main window',
   await expect(rowEditInput(main, 0)).toHaveCount(0);
   await expect(rowText(main, 0)).toHaveText('original');
 });
+
+test('the child window loads the message route in its hash', async ({
+  app,
+  main,
+}) => {
+  await createMessage(main, 'routed');
+  await expect(messageRows(main)).toHaveCount(1);
+
+  // The id is not rendered in the DOM; read it from the main-process state.
+  const id = await main.evaluate(async () => {
+    const state = await window.electronAPI.getState();
+    return state.messages[0].id;
+  });
+  expect(id).toMatch(/^[A-Za-z0-9_-]+$/);
+
+  const child = await openChildWindow(app, main, 0);
+
+  // The id only has [A-Za-z0-9_-], so it is safe inside the pattern.
+  expect(child.url()).toMatch(new RegExp(`#/message/${id}$`));
+});

@@ -3,14 +3,18 @@ import MessageItem from '../components/MessageItem/MessageItem';
 import { useAppStore } from '../hooks';
 import { windowService } from '../services';
 import { hasDraft } from '../../shared/reducer';
-import '../assets/styles/global.css';
-import '../assets/styles/app.css';
+import { buildRoute, ROUTES } from '../../shared/routes';
 
-const App: React.FC = () => {
+/** Main window screen, route `ROUTES.home`. */
+const Home: React.FC = () => {
   const { state, dispatch } = useAppStore();
   const [inputValue, setInputValue] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMessage, setModalMessage] = useState('');
+
+  useEffect(() => {
+    document.title = 'Electron Multi Window';
+  }, []);
 
   const handleCreateMessage = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -25,7 +29,7 @@ const App: React.FC = () => {
   // Starts editing and opens (or focuses) the child window of the message.
   const handleEditClick = (id: string) => {
     dispatch({ type: 'edit/start', id });
-    windowService.openWindow(id);
+    windowService.openWindow(buildRoute(ROUTES.message, { id }));
   };
 
   const handleEditingChange = (id: string, value: string) => {
@@ -130,4 +134,4 @@ const App: React.FC = () => {
   );
 };
 
-export default App;
+export default Home;

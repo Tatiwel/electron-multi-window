@@ -25,8 +25,11 @@ export type Action =
 
 export type ActionType = Action['type'];
 
-/** What a child window learns about itself from the main process. */
-export type WindowContext = { messageId: string };
+/**
+ * Payload of `WINDOW_OPEN` and `WINDOW_CLOSE`: an already resolved route,
+ * such as '/message/abc'. See `shared/routes.ts`.
+ */
+export type WindowRoutePayload = { route: string };
 
 export type Unsubscribe = () => void;
 
@@ -40,8 +43,6 @@ export const IPC = {
   // renderer -> main
   WINDOW_OPEN: 'window:open',
   WINDOW_CLOSE: 'window:close',
-  // renderer -> main (invoke/handle)
-  WINDOW_CONTEXT: 'window:context',
 } as const;
 
 export type IpcChannel = (typeof IPC)[keyof typeof IPC];
@@ -52,11 +53,10 @@ export interface ElectronAPI {
   getState: () => Promise<AppState>;
   dispatch: (action: Action) => void;
   onStateChanged: (callback: (state: AppState) => void) => Unsubscribe;
-  /** Opens, or focuses, the child window of the given message. */
-  openWindow: (id: string) => void;
-  closeWindow: (id: string) => void;
-  /** Resolves with the message this (child) window belongs to, or null. */
-  getWindowContext: () => Promise<WindowContext | null>;
+  /** Opens, or focuses, the child window of the given route. */
+  openWindow: (route: string) => void;
+  /** Closes the child window of the given route. */
+  closeWindow: (route: string) => void;
 }
 
 // Runtime guards for payloads coming over IPC. Kept deliberately small; the
@@ -67,8 +67,8 @@ const isRecord = (x: unknown): x is Record<string, unknown> =>
 const hasNonEmptyId = (x: Record<string, unknown>) =>
   typeof x.id === 'string' && x.id.length > 0;
 
-export const isMessageId = (x: unknown): x is string =>
-  typeof x === 'string' && x.length > 0;
+export const isWindowRoutePayload = (x: unknown): x is WindowRoutePayload =>
+  isRecord(x) && typeof x.route === 'string' && x.route.startsWith('/');
 
 export const isAction = (x: unknown): x is Action => {
   if (!isRecord(x)) {

@@ -1,16 +1,18 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import ReactDOM from 'react-dom/client';
 import { useAppStore, useDraftInput } from '../hooks';
-import { windowService } from '../services';
 import { hasDraft } from '../../shared/reducer';
 import EditIcon from '../assets/icons/edit-icon.svg';
 import SaveIcon from '../assets/icons/save-icon.svg';
 import CancelIcon from '../assets/icons/cancel-icon.svg';
-import '../assets/styles/newWindow.css';
 
-const NewWindow: React.FC = () => {
+interface MessageWindowProps {
+  /** Id of the message, taken from the route '/message/:id'. */
+  id: string;
+}
+
+/** Child window screen, route `ROUTES.message`. */
+const MessageWindow: React.FC<MessageWindowProps> = ({ id: messageId }) => {
   const { state, dispatch } = useAppStore();
-  const [messageId, setMessageId] = useState<string | null>(null);
   const [lockedHeight, setLockedHeight] = useState<number | null>(null);
 
   const messageBoxRef = useRef<HTMLDivElement | null>(null);
@@ -18,41 +20,21 @@ const NewWindow: React.FC = () => {
   // Height of the box in read mode, kept so edit mode does not shrink it.
   const readHeightRef = useRef<number | null>(null);
 
-  // Ask the main process which message this window belongs to.
   useEffect(() => {
-    let active = true;
-    windowService
-      .getWindowContext()
-      .then((context) => {
-        if (active && context) {
-          setMessageId(context.messageId);
-        }
-      })
-      .catch((error: unknown) => {
-        console.error('Failed to fetch the window context:', error);
-      });
-    return () => {
-      active = false;
-    };
+    document.title = 'Edit Message';
   }, []);
 
   // Everything below is derived from the store. If the message is deleted
   // the window shows nothing; the main process closes it anyway.
-  const message =
-    messageId === null
-      ? undefined
-      : state.messages.find((item) => item.id === messageId);
+  const message = state.messages.find((item) => item.id === messageId);
   const userMessage = message?.value ?? '';
-  const storeDraft =
-    messageId !== null && hasDraft(state.editing, messageId)
-      ? state.editing[messageId]
-      : undefined;
+  const storeDraft = hasDraft(state.editing, messageId)
+    ? state.editing[messageId]
+    : undefined;
   const isEditing = storeDraft !== undefined;
 
   const draft = useDraftInput(storeDraft ?? '', (value) => {
-    if (messageId !== null) {
-      dispatch({ type: 'edit/draft', id: messageId, value });
-    }
+    dispatch({ type: 'edit/draft', id: messageId, value });
   });
 
   useLayoutEffect(() => {
@@ -90,21 +72,15 @@ const NewWindow: React.FC = () => {
   }, [userMessage, messageId, isEditing]);
 
   const handleStartEditing = () => {
-    if (messageId !== null) {
-      dispatch({ type: 'edit/start', id: messageId });
-    }
+    dispatch({ type: 'edit/start', id: messageId });
   };
 
   const handleSave = () => {
-    if (messageId !== null) {
-      dispatch({ type: 'edit/save', id: messageId });
-    }
+    dispatch({ type: 'edit/save', id: messageId });
   };
 
   const handleCancel = () => {
-    if (messageId !== null) {
-      dispatch({ type: 'edit/cancel', id: messageId });
-    }
+    dispatch({ type: 'edit/cancel', id: messageId });
   };
 
   const renderContent = () => {
@@ -161,7 +137,6 @@ const NewWindow: React.FC = () => {
             className="btn-icon btn-edit"
             onClick={handleStartEditing}
             aria-label="Edit message"
-            disabled={!messageId}
           >
             <img src={EditIcon} alt="" className="action-icon" />
           </button>
@@ -171,11 +146,4 @@ const NewWindow: React.FC = () => {
   );
 };
 
-// Monta o componente na div com id "root"
-ReactDOM.createRoot(document.getElementById('newWindowRoot')!).render(
-  <React.StrictMode>
-    <NewWindow />
-  </React.StrictMode>
-);
-
-export default NewWindow;
+export default MessageWindow;

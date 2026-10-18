@@ -1,7 +1,6 @@
 /* src/styles/newWindow.css */
 
-/* Reutiliza os estilos globais */
-@import './global.css';
+/* Os estilos globais (global.css) são importados pelo entry, src/main.tsx. */
 
 /* Container específico para a nova janela */
 

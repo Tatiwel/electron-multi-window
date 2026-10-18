@@ -115,7 +115,9 @@
   /* Faz com que o SVG herde a cor do elemento pai */
 }
 
-.action-icon:hover {
+/* Scoped to the main window: the child window shares this stylesheet now that
+   every window loads the same page. :where() keeps the original specificity. */
+:where(.app-container) .action-icon:hover {
   cursor: pointer;
   transform: scale(1.1);
   transition: transform 0.2s ease;
@@ -232,9 +234,10 @@
 
 /* Disable text selection globally (prevents mouse selection on main page)
    but allow selection inside form controls and the modal message so users
-   can still copy text or edit inputs. */
-html,
-body,
+   can still copy text or edit inputs. Only on the main window, which is the
+   page that renders .app-container. */
+html:has(.app-container),
+body:has(.app-container),
 .messages-grid,
 .message-row,
 .message-text,
@@ -268,11 +271,11 @@ button,
   user-select: text;
 }
 
-/* Keep pointer cursor for interactive icons/buttons */
-.action-icon,
-.btn-save,
-.btn-cancel,
-.btn-edit,
-.btn-delete {
+/* Keep pointer cursor for interactive icons/buttons (main window only) */
+:where(.app-container) :is(.action-icon,
+  .btn-save,
+  .btn-cancel,
+  .btn-edit,
+  .btn-delete) {
   cursor: pointer;
 }

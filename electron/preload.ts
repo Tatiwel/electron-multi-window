@@ -13,9 +13,8 @@ const electronAPI: ElectronAPI = {
       ipcRenderer.removeListener(IPC.STORE_CHANGED, listener);
     };
   },
-  openWindow: (id) => ipcRenderer.send(IPC.WINDOW_OPEN, id),
-  closeWindow: (id) => ipcRenderer.send(IPC.WINDOW_CLOSE, id),
-  getWindowContext: () => ipcRenderer.invoke(IPC.WINDOW_CONTEXT),
+  openWindow: (route) => ipcRenderer.send(IPC.WINDOW_OPEN, { route }),
+  closeWindow: (route) => ipcRenderer.send(IPC.WINDOW_CLOSE, { route }),
 };
 
 contextBridge.exposeInMainWorld('electronAPI', electronAPI);
