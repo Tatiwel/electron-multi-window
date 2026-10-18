@@ -1,4 +1,9 @@
-import { BrowserWindow, ipcMain, type WebContents } from 'electron';
+import {
+  BrowserWindow,
+  ipcMain,
+  type BrowserWindowConstructorOptions,
+  type WebContents,
+} from 'electron';
 import path from 'node:path';
 import {
   IPC,
@@ -9,7 +14,12 @@ import {
   type WindowContext,
 } from '../../shared/ipc';
 import { hasDraft } from '../../shared/reducer';
-import { resolveRoute, ROUTES } from '../../shared/routes';
+import {
+  buildRoute,
+  resolveRoute,
+  ROUTES,
+  type RoutePattern,
+} from '../../shared/routes';
 import type { Store } from '../store';
 
 interface RegisterWindowHandlersOptions {
@@ -20,30 +30,48 @@ interface RegisterWindowHandlersOptions {
   store: Store;
 }
 
+/**
+ * Size and other options per screen. A route without an entry opens with
+ * the BrowserWindow defaults.
+ */
+export const windowOptions: Partial<
+  Record<RoutePattern, BrowserWindowConstructorOptions>
+> = {
+  [ROUTES.home]: { width: 800, height: 600 },
+  [ROUTES.message]: { width: 600, height: 400 },
+};
+
+/** Child windows keyed by their route, e.g. '/message/abc'. */
 const windows = new Map<string, BrowserWindow>();
 let registered = false;
 
-const buildNewWindowUrl = (
+/**
+ * Loads the single renderer page with `route` in the hash. In development
+ * it comes from the Vite dev server, in production from `dist/index.html`.
+ */
+export const loadRoute = (
+  win: BrowserWindow,
+  route: string,
   devServerUrl: string | undefined,
   rendererDist: string
-) => {
-  if (devServerUrl) {
-    const normalized = devServerUrl.endsWith('/')
-      ? devServerUrl
-      : `${devServerUrl}/`;
-    return new URL('html/newWindow.html', normalized).toString();
-  }
+) =>
+  devServerUrl
+    ? win.loadURL(`${devServerUrl}#${route}`)
+    : win.loadFile(path.join(rendererDist, 'index.html'), { hash: route });
 
-  return path.join(rendererDist, 'html', 'newWindow.html');
+// Message id of a '/message/:id' route, or null for any other route.
+const messageIdOfRoute = (route: string) => {
+  const resolved = resolveRoute(route);
+  return resolved?.pattern === ROUTES.message ? resolved.params.id : null;
 };
 
-// Message id of a '/message/:id' route payload, or null.
-const messageIdOf = (payload: unknown) => {
-  if (!isWindowRoutePayload(payload)) {
+// Route of a message window, or null when the id cannot be part of a route.
+const messageRoute = (id: string) => {
+  try {
+    return buildRoute(ROUTES.message, { id });
+  } catch {
     return null;
   }
-  const resolved = resolveRoute(payload.route);
-  return resolved?.pattern === ROUTES.message ? resolved.params.id : null;
 };
 
 const hasMessage = (state: AppState, id: string) =>
@@ -63,10 +91,10 @@ export const registerWindowHandlers = (
   const isMainSender = (sender: WebContents) =>
     getMainWindow()?.webContents === sender;
 
-  const findChildIdBySender = (sender: WebContents) => {
-    for (const [id, win] of windows.entries()) {
+  const findChildRouteBySender = (sender: WebContents) => {
+    for (const [route, win] of windows.entries()) {
       if (win.webContents === sender) {
-        return id;
+        return route;
       }
     }
     return null;
@@ -75,38 +103,53 @@ export const registerWindowHandlers = (
   // Only the main window and the child windows this module created may talk
   // to these handlers.
   const isKnownSender = (event: { sender: WebContents }) =>
-    isMainSender(event.sender) || findChildIdBySender(event.sender) !== null;
+    isMainSender(event.sender) || findChildRouteBySender(event.sender) !== null;
 
   // The main window may do anything. A child window may only edit the
-  // message it was opened for.
+  // message its route points to.
   const isAuthorized = (sender: WebContents, action: Action) => {
     if (isMainSender(sender)) {
       return true;
     }
-    const childId = findChildIdBySender(sender);
-    if (childId === null) {
+    const childRoute = findChildRouteBySender(sender);
+    if (childRoute === null) {
       return false;
     }
+    const childMessageId = messageIdOfRoute(childRoute);
     switch (action.type) {
       case 'edit/start':
       case 'edit/draft':
       case 'edit/save':
       case 'edit/cancel':
-        return action.id === childId;
+        return childMessageId !== null && action.id === childMessageId;
       default:
         return false;
     }
   };
 
-  const closeChildWindow = (id: string) => {
-    const childWindow = windows.get(id);
+  const closeChildWindow = (route: string) => {
+    const childWindow = windows.get(route);
     if (childWindow && !childWindow.isDestroyed()) {
       childWindow.close();
     }
   };
 
-  const openChildWindow = async (id: string) => {
-    const existingWindow = windows.get(id);
+  // Whether the route may be opened as a child window right now. The home
+  // route is the main window and is never opened twice; a message route
+  // needs an existing message.
+  const canOpen = (route: string) => {
+    const resolved = resolveRoute(route);
+    if (resolved === null || resolved.pattern === ROUTES.home) {
+      return false;
+    }
+    if (resolved.pattern === ROUTES.message) {
+      return hasMessage(store.getState(), resolved.params.id);
+    }
+    return true;
+  };
+
+  const openChildWindow = async (route: string) => {
+    const existingWindow = windows.get(route);
     if (existingWindow && !existingWindow.isDestroyed()) {
       existingWindow.focus();
       return;
@@ -114,12 +157,12 @@ export const registerWindowHandlers = (
     if (existingWindow) {
       // Stale entry: the window was destroyed without its 'closed' handler
       // cleaning up. Drop it and create a fresh one.
-      windows.delete(id);
+      windows.delete(route);
     }
 
+    const pattern = resolveRoute(route)?.pattern;
     const childWindow = new BrowserWindow({
-      width: 600,
-      height: 400,
+      ...(pattern ? windowOptions[pattern] : undefined),
       webPreferences: {
         preload: preloadPath,
         contextIsolation: true,
@@ -127,36 +170,31 @@ export const registerWindowHandlers = (
       },
     });
 
-    windows.set(id, childWindow);
+    windows.set(route, childWindow);
 
-    // Only drop the map entry if this window still owns the id, so a late
-    // callback from an old window cannot evict a replacement with the same id.
+    // Only drop the map entry if this window still owns the route, so a late
+    // callback from an old window cannot evict a replacement for it.
     const forgetIfOwner = () => {
-      if (windows.get(id) === childWindow) {
-        windows.delete(id);
+      if (windows.get(route) === childWindow) {
+        windows.delete(route);
       }
     };
 
     // Registered before loading so a window closed mid-load is still cleaned
-    // up. Closing a child discards its draft, which is what takes the main
-    // window out of edit mode.
+    // up. Closing a message window discards its draft, which is what takes
+    // the main window out of edit mode.
     childWindow.on('closed', () => {
       forgetIfOwner();
-      if (hasDraft(store.getState().editing, id)) {
+      const id = messageIdOfRoute(route);
+      if (id !== null && hasDraft(store.getState().editing, id)) {
         store.dispatch({ type: 'edit/cancel', id });
       }
     });
 
-    const urlOrPath = buildNewWindowUrl(devServerUrl, rendererDist);
-
     try {
-      if (devServerUrl) {
-        await childWindow.loadURL(urlOrPath);
-      } else {
-        await childWindow.loadFile(urlOrPath);
-      }
+      await loadRoute(childWindow, route, devServerUrl, rendererDist);
     } catch (error) {
-      console.error(`Failed to load the edit window for ${id}:`, error);
+      console.error(`Failed to load the window for ${route}:`, error);
       if (!childWindow.isDestroyed()) {
         childWindow.close();
       }
@@ -182,37 +220,39 @@ export const registerWindowHandlers = (
     }
     store.dispatch(action);
     if (action.type === 'message/delete') {
-      closeChildWindow(action.id);
+      const route = messageRoute(action.id);
+      if (route !== null) {
+        closeChildWindow(route);
+      }
     }
   });
 
   ipcMain.handle(IPC.WINDOW_CONTEXT, (event): WindowContext | null => {
-    const messageId = findChildIdBySender(event.sender);
+    const route = findChildRouteBySender(event.sender);
+    const messageId = route === null ? null : messageIdOfRoute(route);
     return messageId === null ? null : { messageId };
   });
 
   ipcMain.on(IPC.WINDOW_OPEN, (event, payload: unknown) => {
-    const id = messageIdOf(payload);
     if (
       !isMainSender(event.sender) ||
-      id === null ||
-      !hasMessage(store.getState(), id)
+      !isWindowRoutePayload(payload) ||
+      !canOpen(payload.route)
     ) {
       return;
     }
-    void openChildWindow(id);
+    void openChildWindow(payload.route);
   });
 
   ipcMain.on(IPC.WINDOW_CLOSE, (event, payload: unknown) => {
-    const id = messageIdOf(payload);
-    if (id === null) {
+    if (!isWindowRoutePayload(payload)) {
       return;
     }
-    const isOwnWindow = findChildIdBySender(event.sender) === id;
+    const isOwnWindow = findChildRouteBySender(event.sender) === payload.route;
     if (!isMainSender(event.sender) && !isOwnWindow) {
       return;
     }
-    closeChildWindow(id);
+    closeChildWindow(payload.route);
   });
 };
 
