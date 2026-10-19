@@ -1,76 +1,54 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
-const path = require('node:path');
+import { app, BrowserWindow } from 'electron';
+import { createStore } from './store.js';
+import {
+  closeAllChildWindows,
+  loadRoute,
+  registerWindowHandlers,
+  webPreferences,
+  windowOptions,
+} from './windows.js';
+import { initialState } from '../shared/reducer.js';
+import { ROUTES } from '../shared/routes.js';
 
-let mainWindow;
-let newWin;
+let mainWindow = null;
+
+// The main process is the single source of truth for the application state.
+const store = createStore(initialState);
+
+registerWindowHandlers({
+  getMainWindow: () => mainWindow,
+  store,
+});
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
-    webPreferences: {
-      preload: path.join(__dirname, 'src/main/preload.js'),
-      nodeIntegration: true,
-      contextIsolation: false,
-    },
+    ...windowOptions[ROUTES.home],
+    webPreferences,
   });
 
-  mainWindow.loadFile('src/renderer/pages/index.html');
+  // src/renderer/index.html with the home route in the hash.
+  loadRoute(mainWindow, ROUTES.home).catch((error) => {
+    console.error('Failed to load the main window:', error);
+  });
 
   mainWindow.on('closed', () => {
-    if (newWin) {
-      newWin.close();
-    }
+    mainWindow = null;
+    closeAllChildWindows();
   });
 }
 
-function openNewWindow(userInput) {
-  if (newWin) {
-    newWin.focus(); // Se a janela já existir, apenas traz para frente
-    return;
-  }
-
-  newWin = new BrowserWindow({
-    width: 600,
-    height: 400,
-    webPreferences: {
-      preload: path.join(__dirname, 'src/main/preload.js'),
-      nodeIntegration: true,
-      contextIsolation: false,
-    },
-  });
-
-  newWin.loadFile('src/renderer/pages/newWindow.html').then(() => {
-    newWin.webContents.send('display-user-name', userInput);
-  });
-
-  newWin.on('closed', () => {
-    newWin = null; // Redefine a variável para permitir a criação de uma nova janela
-  });
-}
-
-app.whenReady().then(() => {
-  createWindow();
-
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow();
-    }
-  });
-});
+app.whenReady().then(createWindow);
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
+    mainWindow = null;
+    closeAllChildWindows();
   }
 });
 
-ipcMain.on('open-new-window', (event, userInput) => {
-  openNewWindow(userInput);
-});
-
-ipcMain.on('update-value', (event, updatedInput) => {
-  if (newWin) {
-    newWin.webContents.send('update-value', updatedInput);
+app.on('activate', () => {
+  if (BrowserWindow.getAllWindows().length === 0) {
+    createWindow();
   }
 });
