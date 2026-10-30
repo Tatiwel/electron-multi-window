@@ -7,7 +7,7 @@
     "apps/*"
   ],
   "scripts": {
-    "lint": "eslint . --max-warnings 0",
+    "lint": "oxlint --max-warnings 0 --report-unused-disable-directives",
     "build": "bun run build:core && bun run --filter @electron-multi-window/demo build",
     "build:core": "bun run --filter @electron-multi-window/core build",
     "package": "bun run build:core && bun run --filter @electron-multi-window/demo package",
@@ -20,14 +20,9 @@
   "devDependencies": {
     "@commitlint/cli": "^21.2.3",
     "@commitlint/config-conventional": "^21.2.3",
-    "@eslint/js": "^10.0.1",
-    "eslint": "^10.12.0",
-    "eslint-plugin-react-hooks": "^7.1.1",
-    "eslint-plugin-react-refresh": "^0.5.7",
-    "globals": "^17.13.0",
     "husky": "^9.1.7",
-    "typescript": "^6.0.3",
-    "typescript-eslint": "^8.71.1"
+    "oxlint": "^1.90.0",
+    "typescript": "^6.0.3"
   },
   "license": "ISC"
 }
