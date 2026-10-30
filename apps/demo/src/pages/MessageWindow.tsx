@@ -1,5 +1,6 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { useAppStore, useDraftInput } from '../hooks';
+import { useDraftInput } from '@electron-multi-window/core/renderer';
+import { useAppStore } from '../api';
 import { hasDraft } from '../../shared/reducer';
 import EditIcon from '../assets/icons/edit-icon.svg';
 import SaveIcon from '../assets/icons/save-icon.svg';

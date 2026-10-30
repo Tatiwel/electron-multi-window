@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
-import { useHashRoute } from '../hooks';
-import { ROUTES } from '../../shared/routes';
+import { useHashRoute } from '@electron-multi-window/core/renderer';
+import { ROUTES, routes } from '../../shared/routes';
 import Home from './App';
 import MessageWindow from './MessageWindow';
 
@@ -18,7 +18,7 @@ const UnknownRoute: React.FC = () => {
 
 /** Picks the screen of this window from its hash route. */
 const Root: React.FC = () => {
-  const route = useHashRoute();
+  const route = useHashRoute(routes);
 
   switch (route?.pattern) {
     case ROUTES.home:

@@ -1,6 +1,6 @@
 import React from 'react';
-import { useDraftInput } from '../../hooks';
-import type { Message } from '../../services';
+import { useDraftInput } from '@electron-multi-window/core/renderer';
+import type { Message } from '../../api';
 import EditIcon from '../../assets/icons/edit-icon.svg';
 import TrashIcon from '../../assets/icons/trash-icon.svg';
 import SaveIcon from '../../assets/icons/save-icon.svg';

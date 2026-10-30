@@ -1,5 +1,5 @@
 import { useMemo, useSyncExternalStore } from 'react';
-import { resolveRoute, type ResolvedRoute } from '../../shared/routes';
+import type { ResolvedRoute, Routes } from '../shared/index.js';
 
 const subscribe = (onChange: () => void) => {
   window.addEventListener('hashchange', onChange);
@@ -11,9 +11,11 @@ const getPath = () => window.location.hash.slice(1) || '/';
 
 /**
  * Route of this window, read from `location.hash` and kept current on
- * 'hashchange'. Null when the hash matches no known route.
+ * 'hashchange'. Null when the hash matches no registered pattern.
  */
-export const useHashRoute = (): ResolvedRoute | null => {
+export const useHashRoute = <P extends string>(
+  routes: Routes<P>
+): ResolvedRoute<P> | null => {
   const path = useSyncExternalStore(subscribe, getPath);
-  return useMemo(() => resolveRoute(path), [path]);
+  return useMemo(() => routes.resolveRoute(path), [routes, path]);
 };

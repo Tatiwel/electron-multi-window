@@ -42,12 +42,18 @@
       "name": "@electron-multi-window/core",
       "version": "0.1.0",
       "devDependencies": {
+        "@types/react": "^19.3.0",
         "electron": "^44.7.0",
+        "react": "^19.3.0",
         "typescript": "^6.0.3",
       },
       "peerDependencies": {
         "electron": ">=44",
+        "react": "^19.0.0",
       },
+      "optionalPeers": [
+        "react",
+      ],
     },
   },
   "packages": {

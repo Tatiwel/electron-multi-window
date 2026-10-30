@@ -1,31 +1,30 @@
 import { useCallback, useEffect, useState } from 'react';
-import { windowService, type Action, type AppState } from '../services';
-
-const EMPTY_STATE: AppState = { messages: [], editing: {} };
+import type { ElectronApi } from '../shared/index.js';
 
 /**
  * Mirrors the main-process store. On mount it subscribes to state changes
  * and asks for the current state; afterwards every change pushed by the main
- * process replaces the whole state.
+ * process replaces the whole state. `initialState` is shown until the first
+ * answer arrives. `api` should be created once, outside the component.
  */
-export const useAppStore = () => {
-  const [state, setState] = useState<AppState>(EMPTY_STATE);
+export const useStore = <S, A>(api: ElectronApi<S, A>, initialState: S) => {
+  const [state, setState] = useState<S>(initialState);
 
   useEffect(() => {
     let active = true;
 
     // Subscribe before asking so no change slips between the two.
-    const unsubscribe = windowService.onStateChanged((next) => {
+    const unsubscribe = api.onStateChanged((next) => {
       if (active) {
         setState(next);
       }
     });
 
-    windowService
+    api
       .getState()
-      .then((initial) => {
+      .then((current) => {
         if (active) {
-          setState(initial);
+          setState(current);
         }
       })
       .catch((error: unknown) => {
@@ -36,11 +35,9 @@ export const useAppStore = () => {
       active = false;
       unsubscribe();
     };
-  }, []);
+  }, [api]);
 
-  const dispatch = useCallback((action: Action) => {
-    windowService.dispatch(action);
-  }, []);
+  const dispatch = useCallback((action: A) => api.dispatch(action), [api]);
 
   return { state, dispatch };
 };
