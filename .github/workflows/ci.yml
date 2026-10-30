@@ -25,7 +25,8 @@ jobs:
       # Electron >= 42 downloads its binary on first use; fetch it up front so
       # the download does not count against the first test's timeout.
       - name: Download Electron binary
-        run: node "$(node -p "require.resolve('electron/install.js', { paths: ['apps/demo'] })")"
+        run: |
+          node "$(node -p "require.resolve('electron/install.js', { paths: ['apps/demo'] })")"
 
       # Ubuntu 24.04 blocks unprivileged user namespaces, which the Chromium
       # sandbox in Electron needs.
