@@ -1,0 +1,5 @@
+[install]
+# Hoisted layout: shared dependencies go to the root node_modules. The demo
+# opts out of it with installConfig.hoistingLimits (see apps/demo/package.json),
+# which only has an effect with this linker.
+linker = "hoisted"

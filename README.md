@@ -1,414 +1,109 @@
 # Electron Multiple Synchronized Windows
 
 <div align="center">
-  <img src="public/electron-vite.svg" width="80" alt="Electron Logo" />
-  <img src="public/vite.svg" width="60" alt="Vite Logo" />
-  <img src="public/react.svg" width="60" alt="React Logo" />
+  <img src="apps/demo/public/electron-vite.svg" width="80" alt="Electron Logo" />
+  <img src="apps/demo/public/vite.svg" width="60" alt="Vite Logo" />
+  <img src="apps/demo/public/react.svg" width="60" alt="React Logo" />
 </div>
 
 <p align="center">
-  <b>Professional desktop application with multiple real-time synchronized windows</b><br/>
+  <b>Several Electron windows kept in sync in real time, with the main process as the single source of truth</b><br/>
   <a href="https://github.com/Tatiwel/electron-multi-window">GitHub Repository</a>
 </p>
 
 ---
 
-## 📋 Table of Contents
+## What this repository is
 
-- [About the Project](#-about-the-project)
-- [Key Features](#-key-features)
-- [Architecture](#-architecture)
-- [Adding a new window/screen](#-adding-a-new-windowscreen)
-- [Technologies Used](#️-technologies-used)
-- [Prerequisites](#-prerequisites)
-- [Installation & Usage](#-installation--usage)
-- [Project Structure](#-project-structure)
-- [Available Scripts](#-available-scripts)
-- [Development Workflow](#-development-workflow)
-- [Contributing](#-contributing)
-- [Demos](#-demos)
-- [License](#-license)
-- [Author](#-author)
+A desktop app where a main window lists messages and every message can be edited in its own child window. Every keystroke shows up in the other windows at once. The state lives in a store in the main process; windows dispatch actions over a typed, validated IPC bridge and render the whole state they get back. Each window loads the same `index.html` and picks its screen from a hash route (`#/`, `#/message/<id>`).
 
----
+The reusable part of that design (store, window manager, IPC bridge, routes and React hooks) is being split out as a library, [`@electron-multi-window/core`](packages/core), and the app is its first consumer, [`apps/demo`](apps/demo).
 
-## ✨ About the Project
+## Two lines of the same app
 
-This is a modern, production-ready Electron application that demonstrates advanced multi-window management with real-time synchronization. Built with React, TypeScript, and Vite, this project showcases best practices in desktop application development, including:
+| Branch | Stack | Latest tag |
+|--------|-------|------------|
+| [`master`](https://github.com/Tatiwel/electron-multi-window/tree/master) | React 19 + TypeScript 7 + Vite 8, Bun workspace (this README) | `v2.0.0` |
+| [`pure-electron`](https://github.com/Tatiwel/electron-multi-window/tree/pure-electron) | Plain JavaScript, no framework, no bundler | `pure-electron-v2.0.0` |
 
-- **Clean Architecture**: Separation of concerns with services, hooks, and components
-- **Type Safety**: Full TypeScript implementation across main and renderer processes
-- **Modern Tooling**: Vite for lightning-fast builds and HMR (Hot Module Replacement)
-- **Professional Workflows**: Git hooks, linting, and commit conventions
+Both lines implement the same behaviour and run the same Playwright end-to-end suite of 17 scenarios (`apps/demo/tests/e2e/sync.spec.ts` here, `tests/e2e/sync.spec.ts` on `pure-electron`).
 
-Perfect for developers looking to build sophisticated desktop applications that go beyond single-window limitations.
+## Workspace
 
----
-
-## 🚀 Key Features
-
-### Window Management
-- **Multi-Window Architecture**: Open and manage multiple synchronized child windows from the main window
-- **Real-Time Synchronization**: Instant bidirectional communication between all windows via IPC (Inter-Process Communication)
-- **Window Lifecycle Handling**: Deleting a message closes its window and closing a window discards its draft
-- **Edit Mode**: Edit messages in dedicated child windows with live synchronization back to the main window
-
-### User Experience
-- **Intuitive Interface**: Clean, responsive UI built with React
-- **Message Management**: Create, edit, and delete messages identified by ids generated in the main process
-- **Window Controls**: Open, focus, and close child windows programmatically
-- **Editing State Indication**: Visual feedback when messages are being edited in child windows
-
-### Technical Excellence
-- **Context Isolation**: Secure IPC communication with proper preload scripts
-- **Single Source of Truth**: The main process owns the state; windows dispatch actions and render the state they receive
-- **Service Layer**: Clean abstraction over Electron APIs
-- **Handler Pattern**: Organized IPC handlers for maintainable code
-
----
-
-## 🏗️ Architecture
-
-The main process is the single source of truth. It holds the whole application state (`electron/store.ts`) and is the only place that changes it: windows never keep their own copy of the messages or of the edit drafts. A renderer dispatches an action (`message/create`, `message/delete`, `edit/start`, `edit/draft`, `edit/save`, `edit/cancel`); the main process validates it, checks that the sender may perform it (a child window may only edit its own message), runs the pure reducer in `shared/reducer.ts` and, when the state changed, broadcasts the new state to every open window. Each window renders from that state: a message is in edit mode exactly when `editing[id]` exists. Window side effects also live in the main process: deleting a message closes its child window, and closing a child window with the X discards its draft, which takes the main window out of edit mode. A child window learns which message it belongs to from its own route, and reads the state on mount, so it can never miss an update sent before it was ready.
-
-### One page, hash routing
-
-There is a single HTML page, `index.html` at the project root, and a single renderer entry, `src/main.tsx`. Every window loads that same page; the hash after `#` says which screen it shows. In development the main process loads `VITE_DEV_SERVER_URL + '#' + route`; in production it loads `dist/index.html` with the route as the hash. `src/pages/Root.tsx` reads the hash through `useHashRoute`, resolves it with `shared/routes.ts` and renders the matching screen, or a minimal "Unknown route" screen.
-
-| Route | Pattern | Screen | Window |
-|-------|---------|--------|--------|
-| `ROUTES.home` | `/` (an empty hash counts as `/`) | `Home` (`src/pages/App.tsx`) | Main window, 800×600 |
-| `ROUTES.message` | `/message/:id` | `MessageWindow` (`src/pages/MessageWindow.tsx`) | Edit window of message `id`, 600×400 |
-
-The main process keeps the child windows in a map keyed by their route, so opening a route that is already open focuses its window. `window:open` is accepted only from the main window and only for a route that resolves and is not `/` (the main window is never opened twice); `/message/:id` also needs an existing message. `window:close` is accepted from the main window for any route, or from a child for its own route. A child window may only edit the message whose id is in its route.
-
-### IPC channels
-
-| Channel | Direction | Payload |
-|---------|-----------|---------|
-| `store:get` | renderer → main (invoke) | — → `AppState` |
-| `store:dispatch` | renderer → main | `Action` |
-| `store:changed` | main → every renderer | `AppState` |
-| `window:open` | main window → main | `{ route }`, e.g. `{ route: '/message/abc' }` (opens or focuses the window of that route) |
-| `window:close` | renderer → main | `{ route }` |
-
-### Shared (`shared/`)
-- **`ipc.ts`**: `AppState`, `Action`, channel names, the `isAction` and `isWindowRoutePayload` guards and the `ElectronAPI` interface exposed by the preload script
-- **`routes.ts`**: `ROUTES`, `matchRoute`, `resolveRoute` and `buildRoute`, dependency free
-- **`reducer.ts`**: Pure `(state, action) => state` transition, imported by the main process
-
-### Main Process (`electron/`)
-- **`main.ts`**: Application entry point, creates the store and the main window (`dist/index.html`, route `/`)
-- **`store.ts`**: `createStore`: holds the state, applies the reducer, generates ids and broadcasts `store:changed`
-- **`handlers/windowHandlers.ts`**: IPC handlers: validation, sender authorization, child windows keyed by route, `windowOptions` per screen and `loadRoute`
-- **`preload.ts`**: Exposes `getState`, `dispatch`, `onStateChanged`, `openWindow` and `closeWindow` as `window.electronAPI`
-
-### Renderer Process (`src/`)
-
-#### **Services Layer** (`src/services/`)
-- **`windowService.ts`**: Thin wrapper over `window.electronAPI` with the same five methods; `openWindow(route)` and `closeWindow(route)` take a resolved route
-
-#### **Hooks Layer** (`src/hooks/`)
-- **`useAppStore.ts`**: Subscribes to `store:changed`, fetches the state on mount and returns `{ state, dispatch }`
-- **`useDraftInput.ts`**: Local value for an edit input: the typing window never waits for the main process, and store values from other windows still come through
-- **`useHashRoute.ts`**: Reads `location.hash`, follows `hashchange` and returns the resolved route, or `null` for an unknown one
-
-#### **Components Layer** (`src/components/`)
-- **`MessageItem/`**: Reusable message row component
-
-#### **Pages Layer** (`src/pages/`)
-- **`Root.tsx`**: Picks the screen from the hash route
-- **`App.tsx`**: `Home`, the main window screen
-- **`MessageWindow.tsx`**: Child (edit) window screen, receives the message id from the route
-
-### Communication Flow
-
-```
-Main or child window
-    ↓ dispatch(action)            windowService → electronAPI (preload)
-store:dispatch
-    ↓ isAction + sender authorization
-windowHandlers.ts → store.dispatch → reducer
-    ↓ state changed?
-store:changed (whole AppState) → every open window re-renders
-```
-
----
-
-## 🧩 Adding a new window/screen
-
-1. **Create the component** in `src/pages/`, set `document.title` in a `useEffect`, and render it from `src/pages/Root.tsx` for its pattern.
-2. **Register the route** in `ROUTES` (`shared/routes.ts`), e.g. `settings: '/settings'`. If the window needs its own size or other `BrowserWindow` options, add an entry for the pattern to `windowOptions` in `electron/handlers/windowHandlers.ts`.
-3. **Open it** with `windowService.openWindow(buildRoute(ROUTES.settings))` from wherever it makes sense (the main window is the only one allowed to open windows). Opening a route that is already open focuses its window.
-
----
-
-## 🛠️ Technologies Used
-
-### Core Framework
-- **[Electron](https://www.electronjs.org/)** ^44.7.0 - Cross-platform desktop application framework
-- **[React](https://react.dev/)** ^19.3.0 - UI library for building component-based interfaces
-- **[TypeScript](https://www.typescriptlang.org/)** ^6.0.3 - Type-safe JavaScript superset
-
-### Build Tools
-- **[Vite](https://vitejs.dev/)** ^8.3.4 - Next-generation frontend build tool
-- **[vite-plugin-electron](https://github.com/electron-vite/vite-plugin-electron)** ^1.1.2 - Electron integration for Vite
-- **[electron-builder](https://www.electron.build/)** ^26.15.3 - Build and distribution tool
-
-### Development Tools
-- **[ESLint](https://eslint.org/)** ^10.12.0 - Code linting and quality enforcement
-- **[Husky](https://typicode.github.io/husky/)** ^9.1.7 - Git hooks for pre-commit validation
-- **[Commitlint](https://commitlint.js.org/)** ^21.2.3 - Enforce conventional commit messages
-- **[Bun](https://bun.sh/)** - Package manager and script runner for the project
-
----
-
-## 📦 Prerequisites
-
-- **[Bun](https://bun.sh/)** v1.x (the project's package manager)
-- **[Node.js](https://nodejs.org/)** v20.19+ or v22.12+ (required by Vite 8)
-
----
-
-## 📝 Installation & Usage
-
-```bash
-# Clone the repository
-git clone https://github.com/Tatiwel/electron-multi-window.git
-
-# Navigate to the project directory
-cd electron-multi-window
-
-# Install dependencies
-bun install
-
-# Start development mode with hot reload
-bun run dev
-```
-
-### Building for Production
-
-```bash
-# Build the application for distribution
-bun run build
-```
-
-This will:
-1. Compile TypeScript
-2. Build the Vite project
-3. Package the Electron application with electron-builder
-
-Packaged applications will be available in the `release/<version>/` directory (for example `release/2.0.0/`).
-
----
-
-## 📂 Project Structure
+This is a [Bun workspace](https://bun.sh/docs/pm/workspaces): one `bun.lock` at the root, tooling shared from the root.
 
 ```
 electron-multi-window/
-├── .github/                    # GitHub configuration
-│   ├── ISSUE_TEMPLATE/        # Issue templates
-│   ├── CODE_OF_CONDUCT.md     # Code of conduct
-│   ├── CONTRIBUTING.md        # Contribution guidelines
-│   ├── PULL_REQUEST_TEMPLATE.md
-│   └── SECURITY.md            # Security policy
-├── .husky/                     # Git hooks configuration
-├── demo/                       # Demo GIFs and screenshots
-├── electron/                   # Electron main process
-│   ├── handlers/              # IPC handlers
-│   │   └── windowHandlers.ts # Validation, authorization and child window lifecycle
-│   ├── main.ts                # Main process entry point
-│   ├── store.ts               # Application state store (single source of truth)
-│   ├── preload.ts             # Preload script for secure IPC
-│   └── electron-env.d.ts      # TypeScript definitions
-├── shared/                     # Code imported by both processes
-│   ├── ipc.ts                 # State and action types, channel names, guards and the electronAPI contract
-│   ├── reducer.ts             # Pure state transition
-│   └── routes.ts              # Hash routes: ROUTES, matchRoute, resolveRoute, buildRoute
-├── public/                     # Static assets
-│   ├── electron-vite.svg
-│   ├── react.svg
-│   └── vite.svg
-├── src/                        # Renderer process (React app)
-│   ├── assets/                # Styles and images
-│   ├── components/            # Reusable React components
-│   │   └── MessageItem/       # Message item component
-│   ├── hooks/                 # Custom React hooks
-│   │   ├── useAppStore.ts     # Mirror of the main-process state
-│   │   ├── useDraftInput.ts   # Local value for the edit inputs
-│   │   ├── useHashRoute.ts    # Route of this window, from location.hash
-│   │   └── index.ts
-│   ├── pages/                 # Screens
-│   │   ├── Root.tsx           # Renders the screen of the hash route
-│   │   ├── App.tsx            # Home (main window)
-│   │   └── MessageWindow.tsx  # Edit window of one message
-│   ├── services/              # Service layer
-│   │   ├── windowService.ts   # Window operations service
-│   │   └── index.ts
-│   ├── main.tsx               # The only React entry point, renders Root
-│   └── vite-env.d.ts          # Vite TypeScript definitions
-├── tests/e2e/                  # Playwright end-to-end tests (run against the build)
-├── .commitlintrc.cjs           # Commitlint configuration
-├── eslint.config.js            # ESLint configuration (flat config)
-├── .gitignore                  # Git ignore rules
-├── electron-builder.json5      # Electron builder config
-├── index.html                  # The single HTML page loaded by every window
-├── package.json                # Project metadata and scripts
-├── tsconfig.json               # TypeScript configuration
-├── tsconfig.node.json          # TypeScript config for Node
-├── vite.config.ts              # Vite configuration
-└── README.md                   # This file
+├── packages/
+│   └── core/                  # @electron-multi-window/core 0.1.0 (private)
+│       └── src/
+│           ├── shared/        # createRoutes, CHANNELS, guards, ElectronApi types
+│           ├── main/          # createStore, createWindowManager, registerIpc
+│           ├── preload/       # exposeElectronApi
+│           └── renderer/      # createRendererApi, useStore, useHashRoute, useDraftInput
+├── apps/
+│   └── demo/                  # @electron-multi-window/demo 2.1.0, the app
+│       ├── electron/          # main.ts, preload.ts, rules.ts (authorization and effects)
+│       ├── shared/            # state, actions, reducer, routes of the demo
+│       ├── src/               # React screens, components, styles
+│       ├── tests/e2e/         # the 17 Playwright scenarios
+│       ├── electron-builder.json5
+│       └── vite.config.ts
+├── docs/                      # demo GIFs
+├── package.json               # workspaces, aggregate scripts, shared tooling
+├── bunfig.toml                # hoisted linker
+├── tsconfig.base.json         # extended by every package
+├── .oxlintrc.json             # oxlint config for packages/ and apps/
+└── .github/, .husky/, .commitlintrc.cjs
 ```
 
----
+The core is not published yet. The plan is to publish it once its API settles; until then it is `private` and consumed through `workspace:*`.
 
-## 🎯 Available Scripts
+## Getting started
 
-| Command | Description |
-|---------|-------------|
-| `bun run dev` | Start the application in development mode with hot reload |
-| `bun run build` | Build the application for production |
-| `bun run lint` | Run ESLint to check code quality |
-| `bun run preview` | Preview the built application |
-| `bun run test:e2e` | Build the app and run the Playwright end-to-end tests |
-| `bun run test:e2e:ui` | Build the app and open the Playwright UI runner |
-| `bun run test:e2e:headless` | Run the e2e tests under Xvfb, isolating Electron from the desktop session (Wayland) |
+Prerequisites: [Bun](https://bun.sh/) 1.x and [Node.js](https://nodejs.org/) 20.19+ or 22.12+ (required by Vite 8).
 
----
-
-## 💻 Development Workflow
-
-### Code Quality & Standards
-
-This project enforces code quality through automated tools:
-
-#### **Linting**
 ```bash
-bun run lint
-```
-- ESLint checks TypeScript and React code
-- Configured with React hooks rules and TypeScript-specific rules
-- Maximum 0 warnings policy
-
-#### **Commit Conventions**
-Commits must follow the [Conventional Commits](https://www.conventionalcommits.org/) specification:
-
-- `feat:` - New features
-- `fix:` - Bug fixes
-- `chore:` - Maintenance tasks
-- `refactor:` - Code refactoring
-
-**Example**: `feat: add message editing in child windows`
-
-Commitlint automatically validates commit messages via the Husky `commit-msg` hook.
-
----
-
-## 🤝 Contributing
-
-We welcome contributions! Please follow these guidelines:
-
-### Branching Strategy
-
-- **`master`**: Production-ready code
-  - For urgent fixes, create branches with `fix/` prefix
-- **`development`**: Active development branch
-  - For new features, use `feature/` prefix
-  - For refactoring, use `refactor/` prefix
-  - For maintenance, use `chore/` prefix
-
-### Contribution Steps
-
-1. Fork the repository
-2. Create a feature branch from `development`:
-   ```bash
-   git checkout development
-   git checkout -b feature/your-feature-name
-   ```
-3. Make your changes following the code style
-4. Run linting: `bun run lint`
-5. Commit with conventional commit messages
-6. Push to your fork and create a Pull Request to `development`
-
-For detailed guidelines, see [CONTRIBUTING.md](.github/CONTRIBUTING.md)
-
-### Setting Up Git Hooks
-
-Git hooks are installed by the `prepare` script (`husky`), which runs automatically when you run:
-```bash
+git clone https://github.com/Tatiwel/electron-multi-window.git
+cd electron-multi-window
 bun install
+bun run dev
 ```
 
-This sets up:
-- **Pre-commit**: Runs linting checks
-- **Commit-msg**: Validates commit message format
+## Scripts (run from the root)
 
----
+| Command | What it does |
+|---------|--------------|
+| `bun run dev` | Builds the core, then starts the demo with hot reload |
+| `bun run build` | Builds the core, then type-checks and bundles the demo (`dist/`, `dist-electron/`); no packaging |
+| `bun run build:core` | Builds `packages/core` into `packages/core/dist` |
+| `bun run package` | Builds, then packages the demo with electron-builder into `apps/demo/release/<version>/` (AppImage, NSIS or DMG for the current OS) |
+| `bun run package:dir` | Builds, then packages the demo unpacked only (`apps/demo/release/<version>/linux-unpacked/` on Linux) |
+| `bun run lint` | oxlint over the whole workspace, zero warnings allowed (also the pre-commit hook) |
+| `bun run lint:ci` | Builds the core, then runs oxlint with the type-aware rules (`oxlint-tsgolint`); what CI runs |
+| `bun run test:e2e` | Builds the core and bundles the demo, then runs the Playwright suite |
+| `bun run test:e2e:headless` | Same suite under Xvfb, isolated from the desktop session (Wayland) |
 
-## 🎬 Demos
+A single package can also be targeted with `bun run --filter <name> <script>`, e.g. `bun run --filter @electron-multi-window/demo test:e2e:ui`.
 
-### Real-Time Window Synchronization
+## Contributing
+
+Branch from `development` and open the pull request against it. Commits follow [Conventional Commits](https://www.conventionalcommits.org/) and only `feat:`, `fix:`, `chore:` and `refactor:` are accepted; Husky runs the lint on pre-commit and commitlint on commit-msg (installed by `bun install`). See [CONTRIBUTING.md](.github/CONTRIBUTING.md).
+
+## Demos
 
 <p align="center">
-  <img src="demo/sync-ipc-demo.gif" width="600" alt="IPC Synchronization Demo" />
+  <img src="docs/sync-ipc-demo.gif" width="600" alt="IPC Synchronization Demo" />
 </p>
-
-**What's happening here:**
-- Messages created in the main window are instantly available
-- Opening a child window to edit a message shows real-time updates
-- Changes in the child window sync back to the main window immediately
-- Multiple child windows can be opened simultaneously, all staying in sync
-
-### Robust Window Management
 
 <p align="center">
-  <img src="demo/window-control-demo.gif" width="600" alt="Window Control Demo" />
+  <img src="docs/window-control-demo.gif" width="600" alt="Window Control Demo" />
 </p>
 
-**Technical Highlights:**
-- Each child window is bound to one route, `/message/<id>`
-- The state lives in the main process only; windows render what they receive
-- Proper cleanup when windows are closed
-- Prevents race conditions and data corruption
-- Safe handling of window lifecycle events
+## License
 
----
+ISC. See [LICENSE](LICENSE).
 
-## 📄 License
+## Author
 
-This project is licensed under the **ISC License**. See the [LICENSE](LICENSE) file for details.
-
----
-
-## 👤 Author
-
-**Daniel (Tatiwel)**
-- GitHub: [@Tatiwel](https://github.com/Tatiwel)
-- Project: [electron-multi-window](https://github.com/Tatiwel/electron-multi-window)
-
----
-
-## 🔗 Additional Resources
-
-### Pure Electron Version
-
-Interested in a framework-free implementation? Check out the pure Electron branch:
-
-👉 **[pure-electron branch](https://github.com/Tatiwel/electron-multi-window/tree/pure-electron)**
-
-The `pure-electron` branch is **version 1** of this project. It is frozen at the [`pure-electron-v1.0.0`](https://github.com/Tatiwel/electron-multi-window/tree/pure-electron-v1.0.0) tag and will be modernized after the React version.
-
-This branch demonstrates the same synchronization logic using:
-- Pure JavaScript (no TypeScript)
-- No React or frontend frameworks
-- Minimal dependencies
-- Core Electron APIs only
-
-Perfect for those who prefer a lightweight, framework-free approach or want to understand the underlying IPC mechanics without abstractions.
-
----
-
-<div align="center">
-  <p>If you find this project helpful, please consider giving it a ⭐️</p>
-  <p>Made with ❤️ by <a href="https://github.com/Tatiwel">Tatiwel</a></p>
-</div>
+**Daniel (Tatiwel)** · [@Tatiwel](https://github.com/Tatiwel)

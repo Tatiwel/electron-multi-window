@@ -29,27 +29,19 @@ This project demonstrates how to create a modern Electron application with React
      ```pwsh
      bun install
      ```
-   - With npm:
-     ```pwsh
-     npm install
-     ```
+   - The repository is a Bun workspace (`workspace:*` dependencies), so npm is not supported.
 4. **Run the project locally**:
    - With Bun:
      ```pwsh
      bun run dev
      ```
-   - With npm:
-     ```pwsh
-     npm run dev
-     ```
 5. **Make your changes** and ensure everything works as expected.
 6. **Lint and format your code**:
-   - The project uses ESLint with TypeScript and React rules. Run:
+   - The project uses oxlint with TypeScript and React rules (`.oxlintrc.json`). Run:
      ```pwsh
      bun run lint
-     # or
-     npm run lint
      ```
+   - CI runs `bun run lint:ci`, which adds the type-aware rules; run it before opening a pull request.
 7. **Commit your changes** using [semantic commit messages](https://www.conventionalcommits.org/en/v1.0.0/):
    ```
    fix: brief description of the correction
@@ -59,7 +51,7 @@ This project demonstrates how to create a modern Electron application with React
    ```
    Add a longer description in the commit body when necessary.
    Commit messages are validated automatically with `commitlint`.
-   After installing dependencies (`bun install` or `npm install`), Git hooks are set up via Husky so commits that don't follow the format are rejected.
+   After installing dependencies (`bun install`), Git hooks are set up via Husky so commits that don't follow the format are rejected.
    If a commit fails, the console will mention the missing prefix and suggest a valid example, such as `fix: correct typo`.
 8. **Push your branch** and open a Pull Request (PR) on GitHub.
 
@@ -73,16 +65,15 @@ This project demonstrates how to create a modern Electron application with React
 
 ## 🧪 Testing
 
-- Manual testing is recommended for UI and window synchronization features.
-- If you add new features, please update or add relevant tests if possible.
+- Run the Playwright end-to-end suite from the root: `bun run test:e2e` (or `bun run test:e2e:headless` under Xvfb).
+- If you add new features, please update or add relevant tests in `apps/demo/tests/e2e/`.
 
 ## 📁 Project Structure
 
-- `electron/`: Electron main and preload scripts
-- `src/`: React app (pages, assets, styles)
-- `public/`: Static assets
-- `demo/`: Demo GIFs
-- See [README](../README.md#project-structure) for more details.
+- `packages/core/`: `@electron-multi-window/core`, the reusable store, window manager, IPC bridge and React hooks
+- `apps/demo/`: the app (Electron main and preload, React screens, e2e tests, packaging)
+- `docs/`: Demo GIFs
+- See the [README](../README.md#workspace) for more details.
 
 ## 💡 Suggestions & Issues
 
