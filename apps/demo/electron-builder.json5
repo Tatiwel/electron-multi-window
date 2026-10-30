@@ -4,12 +4,20 @@
   "appId": "com.tatiwel.electron-multi-window",
   "asar": true,
   "productName": "Electron Multi Window",
+  // The package name is scoped (@electron-multi-window/demo), which is not a
+  // valid file name for the executable.
+  "executableName": "electron-multi-window",
+  // Paths are relative to apps/demo. The demo is self-contained
+  // (installConfig.hoistingLimits), so its node_modules is a complete tree.
   "directories": {
     "output": "release/${version}"
   },
+  // Only the bundles: @electron-multi-window/core, React and everything else
+  // the app imports are inside dist/ and dist-electron/.
   "files": [
     "dist",
-    "dist-electron"
+    "dist-electron",
+    "package.json"
   ],
   "mac": {
     "target": [
