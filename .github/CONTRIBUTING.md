@@ -37,10 +37,11 @@ This project demonstrates how to create a modern Electron application with React
      ```
 5. **Make your changes** and ensure everything works as expected.
 6. **Lint and format your code**:
-   - The project uses ESLint with TypeScript and React rules. Run:
+   - The project uses oxlint with TypeScript and React rules (`.oxlintrc.json`). Run:
      ```pwsh
      bun run lint
      ```
+   - CI runs `bun run lint:ci`, which adds the type-aware rules; run it before opening a pull request.
 7. **Commit your changes** using [semantic commit messages](https://www.conventionalcommits.org/en/v1.0.0/):
    ```
    fix: brief description of the correction

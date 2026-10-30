@@ -17,7 +17,9 @@ type Fixtures = {
 export const test = base.extend<Fixtures>({
   app: async ({}, use) => {
     // Without VITE_DEV_SERVER_URL the app loads the built files from dist/.
-    const env = { ...process.env };
+    // process.env never holds undefined values at runtime; the cast only
+    // narrows its index signature to what launch() accepts.
+    const env = { ...process.env } as Record<string, string>;
     delete env.VITE_DEV_SERVER_URL;
 
     const app = await _electron.launch({

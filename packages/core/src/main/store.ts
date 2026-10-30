@@ -45,6 +45,9 @@ export const createStore = <S, A>(
       }
       state = next;
       broadcast(state);
+      // The copy is a snapshot: a listener that subscribes or unsubscribes
+      // while this loop runs must not change which listeners it visits.
+      // oxlint-disable-next-line unicorn/no-useless-spread
       for (const listener of [...listeners]) {
         listener(state, previous);
       }

@@ -1,0 +1,92 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "unicorn", "oxc", "react"],
+  "categories": {
+    "correctness": "error"
+  },
+  "env": {
+    "builtin": true,
+    "es2022": true,
+    "browser": true
+  },
+  "ignorePatterns": [
+    "**/dist",
+    "**/dist-electron",
+    "**/release",
+    "**/node_modules",
+    "**/test-results",
+    "**/playwright-report"
+  ],
+  "rules": {
+    "no-unused-vars": [
+      "warn",
+      {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "caughtErrorsIgnorePattern": "^_"
+      }
+    ],
+
+    "no-case-declarations": "error",
+    "no-constant-condition": "error",
+    "no-empty": "error",
+    "no-empty-static-block": "error",
+    "no-fallthrough": "error",
+    "no-prototype-builtins": "error",
+    "no-redeclare": "error",
+    "no-regex-spaces": "error",
+    "no-unexpected-multiline": "error",
+    "no-unsafe-optional-chaining": "error",
+    "no-useless-catch": "error",
+    "no-useless-escape": "error",
+    "preserve-caught-error": "error",
+    "no-array-constructor": "error",
+    "no-unused-expressions": "error",
+
+    "typescript/ban-ts-comment": "error",
+    "typescript/no-empty-object-type": "error",
+    "typescript/no-explicit-any": "error",
+    "typescript/no-namespace": "error",
+    "typescript/no-require-imports": "error",
+    "typescript/no-unnecessary-type-constraint": "error",
+    "typescript/no-unsafe-declaration-merging": "error",
+    "typescript/no-unsafe-function-type": "error",
+    "typescript/no-wrapper-object-types": "error",
+    "typescript/prefer-as-const": "error",
+    "typescript/prefer-namespace-keyword": "error",
+    "typescript/triple-slash-reference": "error",
+
+    "typescript/no-floating-promises": "error",
+    "typescript/await-thenable": "error",
+
+    "react/rules-of-hooks": "error",
+    "react/exhaustive-deps": "warn",
+    "react/only-export-components": ["warn", { "allowConstantExport": true }],
+
+    "react/static-components": "warn",
+    "react/use-memo": "warn",
+    "react/preserve-manual-memoization": "warn",
+    "react/incompatible-library": "warn",
+    "react/immutability": "warn",
+    "react/globals": "warn",
+    "react/refs": "warn",
+    "react/set-state-in-effect": "warn",
+    "react/error-boundaries": "warn",
+    "react/purity": "warn",
+    "react/set-state-in-render": "warn",
+    "react/unsupported-syntax": "warn"
+  },
+  "overrides": [
+    {
+      "files": ["apps/*/tests/e2e/**/*.ts"],
+      "env": {
+        "browser": false,
+        "node": true
+      },
+      "rules": {
+        "no-empty-pattern": ["error", { "allowObjectPatternsAsParameters": true }],
+        "react/rules-of-hooks": "off"
+      }
+    }
+  ]
+}

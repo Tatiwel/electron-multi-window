@@ -23,7 +23,7 @@ The reusable part of that design (store, window manager, IPC bridge, routes and 
 
 | Branch | Stack | Latest tag |
 |--------|-------|------------|
-| [`master`](https://github.com/Tatiwel/electron-multi-window/tree/master) | React 19 + TypeScript 6 + Vite 8, Bun workspace (this README) | `v2.0.0` |
+| [`master`](https://github.com/Tatiwel/electron-multi-window/tree/master) | React 19 + TypeScript 7 + Vite 8, Bun workspace (this README) | `v2.0.0` |
 | [`pure-electron`](https://github.com/Tatiwel/electron-multi-window/tree/pure-electron) | Plain JavaScript, no framework, no bundler | `pure-electron-v2.0.0` |
 
 Both lines implement the same behaviour and run the same Playwright end-to-end suite of 17 scenarios (`apps/demo/tests/e2e/sync.spec.ts` here, `tests/e2e/sync.spec.ts` on `pure-electron`).
@@ -53,7 +53,7 @@ electron-multi-window/
 ├── package.json               # workspaces, aggregate scripts, shared tooling
 ├── bunfig.toml                # hoisted linker
 ├── tsconfig.base.json         # extended by every package
-├── eslint.config.js           # lints packages/ and apps/
+├── .oxlintrc.json             # oxlint config for packages/ and apps/
 └── .github/, .husky/, .commitlintrc.cjs
 ```
 
@@ -79,7 +79,8 @@ bun run dev
 | `bun run build:core` | Builds `packages/core` into `packages/core/dist` |
 | `bun run package` | Builds, then packages the demo with electron-builder into `apps/demo/release/<version>/` (AppImage, NSIS or DMG for the current OS) |
 | `bun run package:dir` | Builds, then packages the demo unpacked only (`apps/demo/release/<version>/linux-unpacked/` on Linux) |
-| `bun run lint` | ESLint over the whole workspace, zero warnings allowed |
+| `bun run lint` | oxlint over the whole workspace, zero warnings allowed (also the pre-commit hook) |
+| `bun run lint:ci` | Builds the core, then runs oxlint with the type-aware rules (`oxlint-tsgolint`); what CI runs |
 | `bun run test:e2e` | Builds the core and bundles the demo, then runs the Playwright suite |
 | `bun run test:e2e:headless` | Same suite under Xvfb, isolated from the desktop session (Wayland) |
 
