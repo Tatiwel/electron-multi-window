@@ -33,8 +33,9 @@ jobs:
       - name: Allow Electron sandbox
         run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
 
+      # Builds the core first: the type-aware rules read its .d.ts files.
       - name: Lint
-        run: bun run lint
+        run: bun run lint:ci
 
       # Builds the core, then type-checks and bundles the demo. Packaging
       # (electron-builder) is left out of CI: it downloads tools on every run.
