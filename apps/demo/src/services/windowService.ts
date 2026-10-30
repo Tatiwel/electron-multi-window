@@ -1,4 +1,5 @@
-import type { Action, AppState, Unsubscribe } from '../../shared/ipc';
+import type { Unsubscribe } from '@electron-multi-window/core/shared';
+import type { Action, AppState } from '../../shared/ipc';
 
 export type { Action, AppState, Message } from '../../shared/ipc';
 

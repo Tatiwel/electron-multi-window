@@ -8,10 +8,11 @@
   ],
   "scripts": {
     "lint": "eslint . --max-warnings 0",
-    "build": "bun run --filter @electron-multi-window/demo build",
-    "dev": "bun run --filter @electron-multi-window/demo dev",
-    "test:e2e": "bun run --filter @electron-multi-window/demo test:e2e",
-    "test:e2e:headless": "bun run --filter @electron-multi-window/demo test:e2e:headless",
+    "build": "bun run build:core && bun run --filter @electron-multi-window/demo build",
+    "build:core": "bun run --filter @electron-multi-window/core build",
+    "dev": "bun run build:core && bun run --filter @electron-multi-window/demo dev",
+    "test:e2e": "bun run build:core && bun run --filter @electron-multi-window/demo test:e2e",
+    "test:e2e:headless": "bun run build:core && bun run --filter @electron-multi-window/demo test:e2e:headless",
     "prepare": "husky"
   },
   "devDependencies": {

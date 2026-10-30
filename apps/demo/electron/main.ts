@@ -1,15 +1,22 @@
 import { app, BrowserWindow } from 'electron';
+import { randomUUID } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import {
-  closeAllChildWindows,
-  loadRoute,
-  registerWindowHandlers,
+  createStore,
+  createWindowManager,
+  registerIpc,
+} from '@electron-multi-window/core/main';
+import { isAction, type Action, type AppState } from '../shared/ipc';
+import { initialState, reducer } from '../shared/reducer';
+import { ROUTES, routes } from '../shared/routes';
+import {
+  authorize,
+  canOpenWindow,
+  closeWindowsOfDeletedMessages,
+  discardDraftOfClosedWindow,
   windowOptions,
-} from './handlers/windowHandlers';
-import { createStore } from './store';
-import { initialState } from '../shared/reducer';
-import { ROUTES } from '../shared/routes';
+} from './rules';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 process.env.APP_ROOT = path.join(__dirname, '..');
@@ -24,33 +31,51 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
 let mainWindow: BrowserWindow | null = null;
 
 // The main process is the single source of truth for the application state.
-const store = createStore(initialState);
+// The reducer stays pure: the id of a new message is generated here.
+const store = createStore<AppState, Action>(
+  (state, action) =>
+    reducer(
+      state,
+      action.type === 'message/create'
+        ? { ...action, id: randomUUID() }
+        : action
+    ),
+  initialState
+);
 
-registerWindowHandlers({
+const windows = createWindowManager({
+  routes,
+  windowOptions: {
+    ...windowOptions,
+    [ROUTES.home]: {
+      ...windowOptions[ROUTES.home],
+      icon: path.join(process.env.VITE_PUBLIC, 'electron-vite.svg'),
+    },
+  },
   preloadPath: path.join(__dirname, 'preload.mjs'),
+  // dist/index.html (or the dev server) with the route in the hash.
+  indexHtmlPath: path.join(RENDERER_DIST, 'index.html'),
   devServerUrl: VITE_DEV_SERVER_URL,
-  rendererDist: RENDERER_DIST,
-  getMainWindow: () => mainWindow,
-  store,
+  onWindowClosed: discardDraftOfClosedWindow(store),
 });
 
+registerIpc({
+  store,
+  windows,
+  getMainWindow: () => mainWindow,
+  isAction,
+  authorize,
+  canOpenWindow: canOpenWindow(store),
+});
+
+closeWindowsOfDeletedMessages(store, windows);
+
 function createWindow() {
-  mainWindow = new BrowserWindow({
-    ...windowOptions[ROUTES.home],
-    icon: path.join(process.env.VITE_PUBLIC, 'electron-vite.svg'),
-    webPreferences: {
-      preload: path.join(__dirname, 'preload.mjs'),
-      contextIsolation: true,
-      nodeIntegration: false,
-    },
-  });
+  mainWindow = windows.open(ROUTES.home);
 
-  // dist/index.html (or the dev server) with the home route in the hash.
-  void loadRoute(mainWindow, ROUTES.home, VITE_DEV_SERVER_URL, RENDERER_DIST);
-
-  mainWindow.on('closed', () => {
+  mainWindow?.on('closed', () => {
     mainWindow = null;
-    closeAllChildWindows();
+    windows.closeAll();
   });
 }
 
@@ -60,7 +85,7 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
     mainWindow = null;
-    closeAllChildWindows();
+    windows.closeAll();
   }
 });
 

@@ -25,6 +25,7 @@
         "react-dom": "^19.3.0",
       },
       "devDependencies": {
+        "@electron-multi-window/core": "workspace:*",
         "@playwright/test": "^1.64.0",
         "@types/react": "^19.3.0",
         "@types/react-dom": "^19.3.0",
@@ -40,6 +41,13 @@
     "packages/core": {
       "name": "@electron-multi-window/core",
       "version": "0.1.0",
+      "devDependencies": {
+        "electron": "^44.7.0",
+        "typescript": "^6.0.3",
+      },
+      "peerDependencies": {
+        "electron": ">=44",
+      },
     },
   },
   "packages": {

@@ -1,11 +1,16 @@
 /**
- * IPC contract shared by the main process, the preload script and the
- * renderer. This file must stay free of Electron, Node and DOM imports so
- * that every side can bundle it.
+ * State, actions and bridge type of the demo. This file must stay free of
+ * Electron, Node and DOM imports so that every side can bundle it. Channel
+ * names and the generic guards come from `@electron-multi-window/core`.
  *
  * The main process owns the application state. Renderers dispatch actions
  * and receive the whole state back whenever it changes.
  */
+import {
+  isNonEmptyString,
+  isObject,
+  type ElectronApi,
+} from '@electron-multi-window/core/shared';
 
 export type Message = { id: string; value: string };
 
@@ -25,53 +30,11 @@ export type Action =
 
 export type ActionType = Action['type'];
 
-/**
- * Payload of `WINDOW_OPEN` and `WINDOW_CLOSE`: an already resolved route,
- * such as '/message/abc'. See `shared/routes.ts`.
- */
-export type WindowRoutePayload = { route: string };
-
-export type Unsubscribe = () => void;
-
-export const IPC = {
-  // renderer -> main (invoke/handle)
-  STORE_GET: 'store:get',
-  // renderer -> main
-  STORE_DISPATCH: 'store:dispatch',
-  // main -> renderers
-  STORE_CHANGED: 'store:changed',
-  // renderer -> main
-  WINDOW_OPEN: 'window:open',
-  WINDOW_CLOSE: 'window:close',
-} as const;
-
-export type IpcChannel = (typeof IPC)[keyof typeof IPC];
-
 /** Shape of `window.electronAPI`, as exposed by `electron/preload.ts`. */
-export interface ElectronAPI {
-  /** Resolves with the whole application state held by the main process. */
-  getState: () => Promise<AppState>;
-  dispatch: (action: Action) => void;
-  onStateChanged: (callback: (state: AppState) => void) => Unsubscribe;
-  /** Opens, or focuses, the child window of the given route. */
-  openWindow: (route: string) => void;
-  /** Closes the child window of the given route. */
-  closeWindow: (route: string) => void;
-}
-
-// Runtime guards for payloads coming over IPC. Kept deliberately small; the
-// project does not need a validation library.
-const isRecord = (x: unknown): x is Record<string, unknown> =>
-  typeof x === 'object' && x !== null;
-
-const hasNonEmptyId = (x: Record<string, unknown>) =>
-  typeof x.id === 'string' && x.id.length > 0;
-
-export const isWindowRoutePayload = (x: unknown): x is WindowRoutePayload =>
-  isRecord(x) && typeof x.route === 'string' && x.route.startsWith('/');
+export type ElectronAPI = ElectronApi<AppState, Action>;
 
 export const isAction = (x: unknown): x is Action => {
-  if (!isRecord(x)) {
+  if (!isObject(x)) {
     return false;
   }
   switch (x.type) {
@@ -81,9 +44,9 @@ export const isAction = (x: unknown): x is Action => {
     case 'edit/start':
     case 'edit/save':
     case 'edit/cancel':
-      return hasNonEmptyId(x);
+      return isNonEmptyString(x.id);
     case 'edit/draft':
-      return hasNonEmptyId(x) && typeof x.value === 'string';
+      return isNonEmptyString(x.id) && typeof x.value === 'string';
     default:
       return false;
   }
