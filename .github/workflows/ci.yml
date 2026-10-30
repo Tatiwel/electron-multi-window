@@ -25,7 +25,8 @@ jobs:
       # Electron >= 42 downloads its binary on first use; fetch it up front so
       # the download does not count against the first test's timeout.
       - name: Download Electron binary
-        run: node node_modules/electron/install.js
+        run: |
+          node "$(node -p "require.resolve('electron/install.js', { paths: ['apps/demo'] })")"
 
       # Ubuntu 24.04 blocks unprivileged user namespaces, which the Chromium
       # sandbox in Electron needs.
@@ -35,6 +36,11 @@ jobs:
       - name: Lint
         run: bun run lint
 
+      # Builds the core, then type-checks and bundles the demo. Packaging
+      # (electron-builder) is left out of CI: it downloads tools on every run.
+      - name: Build
+        run: bun run build
+
       - name: E2E tests
         run: xvfb-run -a bun run test:e2e
 
@@ -43,5 +49,5 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: test-results
-          path: test-results/
+          path: apps/demo/test-results/
           retention-days: 7
