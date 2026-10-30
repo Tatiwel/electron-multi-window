@@ -1,15 +1,19 @@
 {
   "name": "electron-multi-window",
-  "version": "1.0.0",
-  "description": "version1",
+  "private": true,
+  "version": "2.0.0",
+  "description": "Multiple synchronized Electron windows in plain JavaScript, without framework or bundler.",
+  "type": "module",
   "main": "src/main/main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "electron ."
+    "start": "electron .",
+    "test:e2e": "playwright test",
+    "test:e2e:headless": "env -u WAYLAND_DISPLAY XDG_SESSION_TYPE=x11 xvfb-run -a bun run test:e2e"
   },
   "author": "daniel",
   "license": "ISC",
   "devDependencies": {
-    "electron": "^32.1.2"
+    "@playwright/test": "^1.64.0",
+    "electron": "^44.7.0"
   }
 }
