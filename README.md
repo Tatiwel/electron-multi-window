@@ -26,7 +26,7 @@ The reusable part of that design (store, window manager, IPC bridge, routes and 
 | [`master`](https://github.com/Tatiwel/electron-multi-window/tree/master) | React 19 + TypeScript 6 + Vite 8, Bun workspace (this README) | `v2.0.0` |
 | [`pure-electron`](https://github.com/Tatiwel/electron-multi-window/tree/pure-electron) | Plain JavaScript, no framework, no bundler | `pure-electron-v2.0.0` |
 
-Both lines implement the same behaviour and run the same Playwright end-to-end suite of 17 scenarios (`tests/e2e/sync.spec.ts`).
+Both lines implement the same behaviour and run the same Playwright end-to-end suite of 17 scenarios (`apps/demo/tests/e2e/sync.spec.ts` here, `tests/e2e/sync.spec.ts` on `pure-electron`).
 
 ## Workspace
 
@@ -80,7 +80,7 @@ bun run dev
 | `bun run package` | Builds, then packages the demo with electron-builder into `apps/demo/release/<version>/` (AppImage, NSIS or DMG for the current OS) |
 | `bun run package:dir` | Builds, then packages the demo unpacked only (`apps/demo/release/<version>/linux-unpacked/` on Linux) |
 | `bun run lint` | ESLint over the whole workspace, zero warnings allowed |
-| `bun run test:e2e` | Builds the core and the demo, then runs the Playwright suite |
+| `bun run test:e2e` | Builds the core and bundles the demo, then runs the Playwright suite |
 | `bun run test:e2e:headless` | Same suite under Xvfb, isolated from the desktop session (Wayland) |
 
 A single package can also be targeted with `bun run --filter <name> <script>`, e.g. `bun run --filter @electron-multi-window/demo test:e2e:ui`.
