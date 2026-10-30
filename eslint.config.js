@@ -6,7 +6,12 @@ import reactRefresh from 'eslint-plugin-react-refresh';
 import tseslint from 'typescript-eslint';
 
 export default defineConfig([
-  globalIgnores(['dist', 'dist-electron', 'release', 'node_modules']),
+  globalIgnores([
+    '**/dist',
+    '**/dist-electron',
+    '**/release',
+    '**/node_modules',
+  ]),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
@@ -41,7 +46,7 @@ export default defineConfig([
   },
   {
     // Playwright fixtures use `({}, use) => ...`, which is not a React hook.
-    files: ['tests/e2e/**/*.ts'],
+    files: ['apps/*/tests/e2e/**/*.ts'],
     languageOptions: {
       globals: globals.node,
     },

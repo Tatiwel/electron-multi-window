@@ -1,43 +1,30 @@
 {
   "name": "electron-multi-window",
   "private": true,
-  "version": "2.0.0",
   "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build && electron-builder",
     "lint": "eslint . --max-warnings 0",
-    "preview": "vite preview",
-    "prepare": "husky",
-    "test:e2e": "vite build && playwright test",
-    "test:e2e:ui": "vite build && playwright test --ui",
-    "test:e2e:headless": "env -u WAYLAND_DISPLAY XDG_SESSION_TYPE=x11 xvfb-run -a bun run test:e2e"
-  },
-  "dependencies": {
-    "react": "^19.3.0",
-    "react-dom": "^19.3.0"
+    "build": "bun run --filter @electron-multi-window/demo build",
+    "dev": "bun run --filter @electron-multi-window/demo dev",
+    "test:e2e": "bun run --filter @electron-multi-window/demo test:e2e",
+    "test:e2e:headless": "bun run --filter @electron-multi-window/demo test:e2e:headless",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.2.3",
     "@commitlint/config-conventional": "^21.2.3",
     "@eslint/js": "^10.0.1",
-    "@playwright/test": "^1.64.0",
-    "@types/react": "^19.3.0",
-    "@types/react-dom": "^19.3.0",
-    "@vitejs/plugin-react": "^6.1.2",
-    "electron": "^44.7.0",
-    "electron-builder": "^26.15.3",
     "eslint": "^10.12.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.7",
     "globals": "^17.13.0",
     "husky": "^9.1.7",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.71.1",
-    "vite": "^8.3.4",
-    "vite-plugin-electron": "^1.1.2",
-    "vite-plugin-electron-renderer": "^1.0.0"
+    "typescript-eslint": "^8.71.1"
   },
-  "main": "dist-electron/main.js",
   "license": "ISC"
 }
