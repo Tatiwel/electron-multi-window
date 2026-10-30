@@ -75,8 +75,10 @@ bun run dev
 | Command | What it does |
 |---------|--------------|
 | `bun run dev` | Builds the core, then starts the demo with hot reload |
-| `bun run build` | Builds the core, then type-checks, bundles and packages the demo into `apps/demo/release/<version>/` |
+| `bun run build` | Builds the core, then type-checks and bundles the demo (`dist/`, `dist-electron/`); no packaging |
 | `bun run build:core` | Builds `packages/core` into `packages/core/dist` |
+| `bun run package` | Builds, then packages the demo with electron-builder into `apps/demo/release/<version>/` (AppImage, NSIS or DMG for the current OS) |
+| `bun run package:dir` | Builds, then packages the demo unpacked only (`apps/demo/release/<version>/linux-unpacked/` on Linux) |
 | `bun run lint` | ESLint over the whole workspace, zero warnings allowed |
 | `bun run test:e2e` | Builds the core and the demo, then runs the Playwright suite |
 | `bun run test:e2e:headless` | Same suite under Xvfb, isolated from the desktop session (Wayland) |

@@ -37,6 +37,8 @@ Rules of the demo:
 
 ## Build and packaging
 
+`bun run build` only compiles: `tsc`, then `vite build` into `dist/` and `dist-electron/`. `bun run package` compiles and then runs electron-builder, which writes the installer to `release/<version>/`; `bun run package:dir` stops at the unpacked app (`release/<version>/linux-unpacked/` on Linux). CI builds and tests but does not package.
+
 - The core is a `devDependency` and is bundled into `dist-electron/main.js` and `preload.mjs` by `vite-plugin-electron`; the packaged app contains only `dist/` and `dist-electron/` (plus the production `dependencies`).
 - `package.json` sets `installConfig.hoistingLimits: "workspaces"`, so Bun keeps a complete `node_modules` here, where `electron-builder` expects it.
 - `vite.config.ts` dedupes `react` and `react-dom`: the core is linked from `packages/core` and would otherwise resolve a second copy of React from the root.
@@ -48,7 +50,9 @@ Run them from the root (`bun run test:e2e`, …) so the core is built first, or 
 | Command | What it does |
 |---------|--------------|
 | `bun run dev` | Vite dev server with the Electron app and hot reload |
-| `bun run build` | `tsc`, `vite build` and `electron-builder` into `release/<version>/` |
+| `bun run build` | `tsc` and `vite build` into `dist/` and `dist-electron/`; no packaging |
+| `bun run package` | `build`, then `electron-builder`: the installer in `release/<version>/` |
+| `bun run package:dir` | `build`, then `electron-builder --dir`: the unpacked app only |
 | `bun run test:e2e` | `vite build`, then the 17 Playwright scenarios in `tests/e2e/` |
 | `bun run test:e2e:ui` | Same, in the Playwright UI runner |
 | `bun run test:e2e:headless` | The suite under Xvfb, isolated from the desktop session (Wayland) |

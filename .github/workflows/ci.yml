@@ -36,7 +36,8 @@ jobs:
       - name: Lint
         run: bun run lint
 
-      # Builds the core, then type-checks, bundles and packages the demo.
+      # Builds the core, then type-checks and bundles the demo. Packaging
+      # (electron-builder) is left out of CI: it downloads tools on every run.
       - name: Build
         run: bun run build
 

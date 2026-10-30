@@ -8,7 +8,9 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build && electron-builder",
+    "build": "tsc && vite build",
+    "package": "bun run build && electron-builder",
+    "package:dir": "bun run build && electron-builder --dir",
     "preview": "vite preview",
     "test:e2e": "vite build && playwright test",
     "test:e2e:ui": "vite build && playwright test --ui",
