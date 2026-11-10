@@ -24,6 +24,7 @@ bun start
 | Command | Description |
 |---------|-------------|
 | `bun start` | Start the application |
+| `bun run lint` | Lint the sources and tests with oxlint |
 | `bun run test:e2e` | Run the Playwright e2e suite |
 | `bun run test:e2e:headless` | Run the suite under Xvfb, isolated from the desktop session (Wayland) |
 

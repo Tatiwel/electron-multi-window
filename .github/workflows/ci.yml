@@ -25,6 +25,9 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
+      - name: Lint
+        run: bun run lint
+
       # Electron >= 42 downloads its binary on first use; fetch it up front so
       # the download does not count against the first test's timeout.
       - name: Download Electron binary

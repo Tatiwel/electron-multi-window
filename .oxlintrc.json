@@ -1,0 +1,66 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": [
+    "eslint",
+    "oxc"
+  ],
+  "categories": {
+    "correctness": "error"
+  },
+  "env": {
+    "builtin": true,
+    "es2024": true
+  },
+  "ignorePatterns": [
+    "**/node_modules",
+    "**/test-results",
+    "**/playwright-report",
+    "misc/**"
+  ],
+  "rules": {
+    "no-unused-vars": [
+      "warn",
+      {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "caughtErrorsIgnorePattern": "^_"
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": [
+        "src/renderer/**"
+      ],
+      "env": {
+        "browser": true
+      }
+    },
+    {
+      "files": [
+        "src/main/**",
+        "src/shared/**",
+        "playwright.config.ts"
+      ],
+      "env": {
+        "node": true
+      }
+    },
+    {
+      "files": [
+        "tests/**"
+      ],
+      "env": {
+        "node": true
+      },
+      "rules": {
+        "no-empty-pattern": [
+          "error",
+          {
+            "allowObjectPatternsAsParameters": true
+          }
+        ]
+      }
+    }
+  ]
+}
