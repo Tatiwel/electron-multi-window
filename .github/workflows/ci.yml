@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 jobs:
-  e2e:
+  lint-and-e2e:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
