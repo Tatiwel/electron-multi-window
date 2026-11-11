@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 jobs:
-  e2e:
+  lint-and-e2e:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -24,6 +24,9 @@ jobs:
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
+
+      - name: Lint
+        run: bun run lint
 
       # Electron >= 42 downloads its binary on first use; fetch it up front so
       # the download does not count against the first test's timeout.
