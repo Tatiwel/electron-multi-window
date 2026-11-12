@@ -7,6 +7,7 @@
   "main": "src/main/main.js",
   "scripts": {
     "start": "electron .",
+    "lint": "oxlint --max-warnings 0",
     "test:e2e": "playwright test",
     "test:e2e:headless": "env -u WAYLAND_DISPLAY XDG_SESSION_TYPE=x11 xvfb-run -a bun run test:e2e"
   },
@@ -14,6 +15,7 @@
   "license": "ISC",
   "devDependencies": {
     "@playwright/test": "^1.64.0",
-    "electron": "^44.7.0"
+    "electron": "^44.7.0",
+    "oxlint": "^1.93.0"
   }
 }

@@ -10,7 +10,11 @@ To show that the design of the `master` branch does not depend on React. The sta
 
 Both versions render the same DOM (same classes, `aria-label`s, placeholders, window titles, table and modal structure), so the **same Playwright e2e suite runs unchanged on both**. Only the fixture differs: here it launches Electron on the sources, with no build.
 
-Version 1 of this branch (a single input mirrored into one window) is preserved at the [`pure-electron-v1.0.0`](https://github.com/Tatiwel/electron-multi-window/tree/pure-electron-v1.0.0) tag. Its demo is `misc/demo-pure-electron.gif`.
+Version 1 of this branch (a single input mirrored into one window) is preserved at the [`pure-electron-v1.0.0`](https://github.com/Tatiwel/electron-multi-window/tree/pure-electron-v1.0.0) tag.
+
+<p align="center">
+  <img src="misc/demo-pure-electron.gif" width="600" alt="Editing a message in the main window and in its child window, kept in sync" />
+</p>
 
 ## Running it
 
@@ -24,6 +28,7 @@ bun start
 | Command | Description |
 |---------|-------------|
 | `bun start` | Start the application |
+| `bun run lint` | Lint the sources and tests with oxlint |
 | `bun run test:e2e` | Run the Playwright e2e suite |
 | `bun run test:e2e:headless` | Run the suite under Xvfb, isolated from the desktop session (Wayland) |
 
